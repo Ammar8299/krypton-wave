@@ -1,0 +1,61 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node / Dependencies
+node_modules/
+dist/
+dist-ssr/
+release/
+out/
+build/
+*.local
+
+# Vite
+.vite/
+.cache/
+
+# User Data & Flat JSON Database (local runtime storage)
+identity.json
+contacts.json
+blocked.json
+messages/
+*.tmp
+userData/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# Agent / IDE internal data
+.system_generated/
+.tempmediaStorage/
+.user_uploaded/
+scratch/
