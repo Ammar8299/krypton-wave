@@ -19,9 +19,8 @@
  *   4. Both → HANDSHAKE_COMPLETE
  *   → Session key derived. Encrypted or plaintext chat begins.
  *
- * if wiresharkMode:
- *   After every real message, an additional ANALYSIS frame is sent
- *   as intentional plaintext for Wireshark observation.
+ * Every CHAT_MESSAGE and CHAT_MESSAGE_PLAIN contains human-readable `pqc_data`
+ * metadata reflecting the active cryptographic layer configuration for Wireshark inspection.
  *
  * Events:
  *   onHandshakeComplete(peerInfo)
@@ -43,18 +42,17 @@ const {
 } = require('../crypto/pqc');
 const {
   deriveSessionKey, encryptMessage, decryptMessage,
-  buildAnalysisString, SeqTracker,
+  buildPQCData, SeqTracker,
 } = require('../crypto/session');
 
 const PING_INTERVAL      = 20_000; // 20 s
 const HANDSHAKE_TIMEOUT  = 30_000; // 30 s (longer for Falcon-512 keygen)
 
-// Default security config (all ON)
+// Default security config (all 3 real crypto layers ON)
 const DEFAULT_CONFIG = {
-  kemEnabled:    true,
-  sigEnabled:    true,
-  aesEnabled:    true,
-  wiresharkMode: false,
+  kemEnabled: true,
+  sigEnabled: true,
+  aesEnabled: true,
 };
 
 function cleanIp(ip) {
@@ -75,6 +73,7 @@ class PeerConnection extends EventEmitter {
   constructor(socket, role, identity, securityConfig = DEFAULT_CONFIG, onCryptoEvent = null) {
     super();
     this.socket         = socket;
+    try { this.socket.setNoDelay(true); } catch {}
     this.role           = role;
     this.identity       = identity;
     this.config         = { ...DEFAULT_CONFIG, ...securityConfig };
@@ -284,7 +283,6 @@ class PeerConnection extends EventEmitter {
       case MSG.ECDH_EXCHANGE:      this._onEcdhExchange(msg);   break;
       case MSG.CHAT_MESSAGE:       this._onChatMessage(msg);    break;
       case MSG.CHAT_MESSAGE_PLAIN: this._onPlainMessage(msg);   break;
-      case MSG.ANALYSIS:           /* ignore our own reflections */ break;
       case MSG.TYPING_START:       this.emit('typing', true);   break;
       case MSG.TYPING_STOP:        this.emit('typing', false);  break;
       case MSG.MESSAGE_DELIVERED:  this.emit('receipt', 'delivered', msg.messageId); break;
@@ -328,39 +326,30 @@ class PeerConnection extends EventEmitter {
     const messageId = uuidv4();
 
     if (this.config.aesEnabled && this.sessionKey) {
-      // Encrypted message
-      const seqNum  = this.seqTracker.nextSend();
-      const payload = encryptMessage(this.sessionKey, text, seqNum);
-      this._send({ type: MSG.CHAT_MESSAGE, messageId, seqNum, payload });
+      // Encrypted message with human-readable pqc_data metadata
+      const seqNum   = this.seqTracker.nextSend();
+      const payload  = encryptMessage(this.sessionKey, text, seqNum);
+      const pqc_data = buildPQCData(this.config, payload.ciphertext, null);
+
+      this._send({
+        type: MSG.CHAT_MESSAGE,
+        messageId,
+        seqNum,
+        payload,
+        pqc_data,
+      });
       this._emitCryptoEvent('sent', messageId, seqNum, true, payload, null);
-
-      // Wireshark Analysis frame
-      if (this.config.wiresharkMode) {
-        const analysisData = buildAnalysisString(this.config, payload, null);
-        this._send({
-          type:      MSG.ANALYSIS,
-          data:      analysisData,
-          seqNum,
-          timestamp: Date.now(),
-          note:      'ANALYSIS FRAME — Educational metadata only. Not application data.',
-        });
-      }
     } else {
-      // Plaintext message (AES disabled)
-      this._send({ type: MSG.CHAT_MESSAGE_PLAIN, messageId, content: text });
-      this._emitCryptoEvent('sent', messageId, 0, false, null, text);
+      // Plaintext message with human-readable pqc_data metadata (AES disabled)
+      const pqc_data = buildPQCData(this.config, null, text);
 
-      // Wireshark Analysis frame
-      if (this.config.wiresharkMode) {
-        const analysisData = buildAnalysisString(this.config, null, text);
-        this._send({
-          type:      MSG.ANALYSIS,
-          data:      analysisData,
-          seqNum:    0,
-          timestamp: Date.now(),
-          note:      'ANALYSIS FRAME — Educational metadata only. Not application data.',
-        });
-      }
+      this._send({
+        type: MSG.CHAT_MESSAGE_PLAIN,
+        messageId,
+        content: text,
+        pqc_data,
+      });
+      this._emitCryptoEvent('sent', messageId, 0, false, null, text);
     }
 
     return messageId;
@@ -385,14 +374,21 @@ class PeerConnection extends EventEmitter {
   // ── Internal helpers ───────────────────────────────────────────────────────
   _send(msg) {
     if (!this.socket || this.socket.destroyed) return;
+    const buf = encode(msg);
+
+    if (msg.type === MSG.CHAT_MESSAGE || msg.type === MSG.CHAT_MESSAGE_PLAIN) {
+      console.log(`[NETWORK WIRE] Sent ${msg.type} (${buf.length} bytes over TCP)`);
+      console.log(`[NETWORK WIRE] pqc_data: "${msg.pqc_data}"`);
+    }
+
     if (this.socket.readyState !== 'open') {
       this.socket.once('connect', () => {
-        try { if (!this.socket.destroyed) this.socket.write(encode(msg)); } catch {}
+        try { if (!this.socket.destroyed) this.socket.write(buf); } catch {}
       });
       return;
     }
     try {
-      this.socket.write(encode(msg));
+      this.socket.write(buf);
     } catch (err) {
       console.error('[peer] Socket write error:', err.message);
     }

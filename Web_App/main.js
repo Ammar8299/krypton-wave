@@ -5,13 +5,22 @@ const os = require('os');
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// ── Universal Profile & Multi-Instance Cache Isolation ────────────────────────
+const customUserData = process.env.ELECTRON_USER_DATA_DIR;
+const vitePort = process.env.VITE_PORT ? String(process.env.VITE_PORT) : '5173';
+
+if (customUserData) {
+  app.setPath('userData', customUserData);
+} else if (vitePort !== '5173') {
+  app.setPath('userData', path.join(app.getPath('appData'), 'krypton-wave-peer-' + vitePort));
+}
+
 // ── Backend modules (loaded after app ready) ─────────────────────────────────
 let peerManager, identity, contacts, messages;
 let securityConfig = {
-  kemEnabled:    true,
-  sigEnabled:    true,
-  aesEnabled:    true,
-  wiresharkMode: false,
+  kemEnabled: true,
+  sigEnabled: true,
+  aesEnabled: true,
 };
 
 // ── Utility: get local LAN IP ─────────────────────────────────────────────────
@@ -96,7 +105,7 @@ app.whenReady().then(async () => {
   try {
     const actualPort = await peerManager.listen(listenPort);
     if (actualPort !== listenPort) {
-      console.log(`[main] Port ${listenPort} busy — bound to ${actualPort} instead`);
+      console.log(`[main] Port ${listenPort} busy -> bound to ${actualPort} instead`);
       identity.listenPort = actualPort;
       const { saveIdentity } = require('./src/crypto/identity');
       saveIdentity(identity);
@@ -147,6 +156,7 @@ function registerIPC() {
   });
 
   ipcMain.handle('set-security-config', (_, newConfig) => {
+    console.log('[DEBUG] IPC set-security-config received:', newConfig);
     securityConfig = { ...securityConfig, ...newConfig };
     peerManager?.updateSecurityConfig(securityConfig);
     const activePeers = peerManager ? peerManager.getActivePeerCount() : 0;
@@ -198,6 +208,10 @@ function registerIPC() {
   });
 
   // Networking
+  ipcMain.handle('get-active-peers', () => {
+    return peerManager ? peerManager.getActivePeers() : [];
+  });
+
   ipcMain.handle('connect-peer', async (_, { ip, port }) => {
     try {
       const result = await peerManager.connectPeer(ip, port, identity);

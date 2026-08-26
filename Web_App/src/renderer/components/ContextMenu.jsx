@@ -64,9 +64,9 @@ export default function ContextMenu() {
 
   const handleDelete = async () => {
     setContextMenu(null);
-    if (window.confirm(`Delete chat and contact for ${contact.name || contactId}?`)) {
+    if (window.confirm(`Delete chat and contact for ${contact?.name || contactId}?`)) {
       await deleteChatHistory(contactId);
-      if (contact.id) await deleteContact(contact.id);
+      if (contact?.id) await deleteContact(contact.id);
     }
   };
 
@@ -82,7 +82,7 @@ export default function ContextMenu() {
       }}
     >
       <div className="context-menu-header font-mono">
-        {contact.name || contactId}
+        {contact?.name || contactId}
       </div>
 
       <button className="context-menu-item" onClick={handleRenameOrSave}>

@@ -4,11 +4,11 @@ import ContactItem from './ContactItem';
 import WindowControls from './WindowControls';
 import { ShieldIcon, SettingsIcon, PlusIcon, SearchIcon } from './Icons';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 
 export default function Sidebar() {
   const {
-    contacts, ephemeralPeers, activeContactId, peerStatus,
+    contacts, ephemeralPeers, activeContactId, peerStatus, messages,
     view, searchQuery,
     setActiveContact, setView, setShowAddModal, setSearchQuery,
   } = useAppStore();
@@ -16,6 +16,27 @@ export default function Sidebar() {
   const filtered = contacts.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     `${c.ip}:${c.port}`.includes(searchQuery)
+  );
+
+  // Combine ephemeral peers with any unsaved contactIds that have messages in store
+  const allEphemeral = [...ephemeralPeers];
+  Object.keys(messages || {}).forEach(msgContactId => {
+    const isSaved = contacts.some(c => `${c.ip}:${c.port}` === msgContactId || c.id === msgContactId);
+    const isEphem = allEphemeral.some(p => p.id === msgContactId);
+    if (!isSaved && !isEphem && messages[msgContactId]?.length > 0) {
+      const parts = msgContactId.split(':');
+      allEphemeral.push({
+        id: msgContactId,
+        name: 'Unknown Peer',
+        ip: parts[0] || '127.0.0.1',
+        port: Number(parts[1] || 5050),
+      });
+    }
+  });
+
+  const filteredEphemeral = allEphemeral.filter(p =>
+    (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.id || '').includes(searchQuery)
   );
 
   const handleContactClick = (id) => {
@@ -86,29 +107,32 @@ export default function Sidebar() {
           </>
         )}
 
-        {/* Ephemeral sessions */}
-        {ephemeralPeers.length > 0 && (
+        {/* Ephemeral / Unsaved sessions */}
+        {filteredEphemeral.length > 0 && (
           <>
-            <div className="section-label">Ephemeral</div>
-            {ephemeralPeers.map(peer => (
-              <ContactItem
-                key={peer.id}
-                contact={{ name: peer.name || 'Unknown', ip: peer.ip, port: peer.port }}
-                contactId={peer.id}
-                isActive={activeContactId === peer.id}
-                isOnline={true}
-                isEphemeral
-                onClick={() => handleContactClick(peer.id)}
-              />
-            ))}
+            <div className="section-label">Active / Unsaved Peers</div>
+            {filteredEphemeral.map(peer => {
+              const status = peerStatus[peer.id] || {};
+              return (
+                <ContactItem
+                  key={peer.id}
+                  contact={{ name: peer.name || 'Unknown Peer', ip: peer.ip, port: peer.port }}
+                  contactId={peer.id}
+                  isActive={activeContactId === peer.id}
+                  isOnline={status.online !== false}
+                  isEphemeral
+                  onClick={() => handleContactClick(peer.id)}
+                />
+              );
+            })}
           </>
         )}
 
-        {contacts.length === 0 && ephemeralPeers.length === 0 && (
+        {filtered.length === 0 && filteredEphemeral.length === 0 && (
           <div style={{ padding: '32px 20px', textAlign: 'center' }}>
             <div className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.8 }}>
-              NO CONTACTS YET<br />
-              <span style={{ color: 'var(--green-dim)' }}>Click + to add a peer by IP:Port</span>
+              NO CONVERSATIONS<br />
+              <span style={{ color: 'var(--green-dim)' }}>Click + to connect to a peer by IP:Port</span>
             </div>
           </div>
         )}

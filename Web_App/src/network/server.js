@@ -32,13 +32,17 @@ function createPeerManager({ identity, securityConfig, onMessage, onPeerEvent, o
     kemEnabled: true,
     sigEnabled: true,
     aesEnabled: true,
-    wiresharkMode: false,
     ...securityConfig,
   };
 
   function updateSecurityConfig(newConfig) {
     activeSecurityConfig = { ...activeSecurityConfig, ...newConfig };
     console.log('[server] Updated active security config:', activeSecurityConfig);
+    for (const conn of peers.values()) {
+      if (conn) {
+        conn.config = { ...conn.config, ...newConfig };
+      }
+    }
   }
 
   function getSecurityConfig() {
@@ -196,9 +200,68 @@ function createPeerManager({ identity, securityConfig, onMessage, onPeerEvent, o
     });
   }
 
+  // ── Find Peer (Robust Multi-Key Lookup) ──────────────────────────────────────
+  function findPeer(contactId) {
+    if (!contactId) return null;
+    if (peers.has(contactId) && peers.get(contactId).isReady) return peers.get(contactId);
+
+    const parts = contactId.split(':');
+    if (parts.length === 2) {
+      const normalized = `${cleanIp(parts[0])}:${parts[1]}`;
+      if (peers.has(normalized) && peers.get(normalized).isReady) return peers.get(normalized);
+    }
+
+    try {
+      const contactsStore = require('../storage/contacts');
+      const saved = contactsStore.getContact(contactId);
+      if (saved) {
+        const savedAddr = `${cleanIp(saved.ip)}:${saved.port}`;
+        if (peers.has(savedAddr) && peers.get(savedAddr).isReady) return peers.get(savedAddr);
+      }
+    } catch {}
+
+    for (const [id, conn] of peers.entries()) {
+      if (!conn.isReady) continue;
+      if (id === contactId) return conn;
+      if (conn.peerInfo && (conn.peerInfo.id === contactId || `${conn.peerInfo.ip}:${conn.peerInfo.port}` === contactId)) {
+        return conn;
+      }
+    }
+
+    if (peers.size === 1) {
+      const singleConn = peers.values().next().value;
+      if (singleConn && singleConn.isReady) return singleConn;
+    }
+
+    return null;
+  }
+
   // ── Send a chat message ──────────────────────────────────────────────────────
   async function sendMessage(contactId, text) {
-    const conn = peers.get(contactId);
+    let conn = findPeer(contactId);
+    if (!conn) {
+      const parts = contactId.split(':');
+      let targetIp = parts[0];
+      let targetPort = Number(parts[1]);
+
+      if (!targetPort) {
+        try {
+          const contactsStore = require('../storage/contacts');
+          const saved = contactsStore.getContact(contactId);
+          if (saved) {
+            targetIp = saved.ip;
+            targetPort = Number(saved.port);
+          }
+        } catch {}
+      }
+
+      if (targetIp && targetPort) {
+        console.log(`[server] Auto-connecting to ${targetIp}:${targetPort} to deliver message...`);
+        await connectPeer(targetIp, targetPort, identity);
+        conn = findPeer(contactId);
+      }
+    }
+
     if (!conn) throw new Error(`No active connection to ${contactId}`);
     const messageId = conn.sendText(text);
     return {
@@ -212,19 +275,47 @@ function createPeerManager({ identity, securityConfig, onMessage, onPeerEvent, o
 
   // ── Typing indicator ─────────────────────────────────────────────────────────
   function sendTyping(contactId, isTyping) {
-    const conn = peers.get(contactId);
+    const conn = findPeer(contactId);
     conn?.sendTyping(isTyping);
   }
 
   // ── Disconnect ───────────────────────────────────────────────────────────────
   function disconnectPeer(contactId) {
-    const conn = peers.get(contactId);
-    if (conn) { conn.close(); peers.delete(contactId); }
+    const conn = findPeer(contactId);
+    if (conn) {
+      conn.close();
+      for (const [key, val] of peers.entries()) {
+        if (val === conn) peers.delete(key);
+      }
+    }
   }
 
   // ── Online status ────────────────────────────────────────────────────────────
   function isPeerOnline(contactId) {
-    return peers.has(contactId) && peers.get(contactId).isReady;
+    const conn = findPeer(contactId);
+    return Boolean(conn && conn.isReady);
+  }
+
+  function getActivePeers() {
+    const list = [];
+    for (const [id, conn] of peers.entries()) {
+      if (conn && conn.isReady) {
+        const rawIp = cleanIp(conn.socket.remoteAddress);
+        const port = conn.peerInfo?.listenPort || conn.socket.remotePort;
+        list.push({
+          id,
+          ip: rawIp,
+          port,
+          name: conn.peerInfo?.name || 'Unknown',
+          fingerprint: conn.peerInfo?.fingerprint,
+          kemPublicKey: conn.peerInfo?.kemPublicKey,
+          sigPublicKey: conn.peerInfo?.sigPublicKey,
+          sigAlgorithm: conn.peerInfo?.sigAlgorithm,
+          securityConfig: conn.peerInfo?.securityConfig,
+        });
+      }
+    }
+    return list;
   }
 
   function getActivePeerCount() {
@@ -240,6 +331,7 @@ function createPeerManager({ identity, securityConfig, onMessage, onPeerEvent, o
     disconnectPeer,
     isPeerOnline,
     getActivePeerCount,
+    getActivePeers,
     updateSecurityConfig,
     getSecurityConfig,
   };

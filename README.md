@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Key_Exchange-NIST_FIPS_203_(ML--KEM--768)-00BFFF?style=for-the-badge&logo=shield&logoColor=white" alt="ML-KEM-768" />
   <img src="https://img.shields.io/badge/Signatures-NIST_FIPS_206_(Falcon--512)-FF8C00?style=for-the-badge&logo=auth0&logoColor=white" alt="Falcon-512" />
   <img src="https://img.shields.io/badge/Encryption-AES--256--GCM-FF3131?style=for-the-badge&logo=lock&logoColor=white" alt="AES-256-GCM" />
-  <img src="https://img.shields.io/badge/Analysis-Wireshark_Mode-A855F7?style=for-the-badge&logo=wireshark&logoColor=white" alt="Wireshark Mode" />
+  <img src="https://img.shields.io/badge/Wire_Metadata-Embedded_pqc__data-00FF66?style=for-the-badge&logo=wireshark&logoColor=black" alt="pqc_data" />
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 <p align="center">
   <a href="#-whats-new-in-kπyρτόn_wave">What's New</a> •
   <a href="#-cryptographic-stack--specifications">Cryptographic Stack</a> •
-  <a href="#-the-4-interactive-protocol-toggles">Interactive Toggles</a> •
+  <a href="#-the-3-interactive-protocol-toggles">Interactive Toggles</a> •
   <a href="#-5-step-pqc-handshake-protocol">Handshake Protocol</a> •
   <a href="#-real-wireshark-packet-capture-experiment">Wireshark Guide</a> •
   <a href="#-hardware-schematic--circuit-design">Hardware & Circuit</a> •
@@ -50,14 +50,16 @@
 │                               │ Fast-Fourier lattice signatures (~660B).         │
 │  2. Zero-HKDF Architecture    │ Removed HKDF-SHA256 completely; ML-KEM-768       │
 │                               │ 32-byte shared secret maps directly to AES-256.  │
-│  3. 4 Real Protocol Toggles   │ ML-KEM-768, Falcon-512, AES-256, Wireshark Mode  │
-│                               │ with individual neon-glowing control switches.   │
-│  4. Wireshark Analysis Frames │ Emits readable companion metadata frames over    │
-│                               │ TCP for educational inspection in Wireshark.     │
-│  5. Live Crypto Telemetry     │ Real-time log table showing raw packet size,     │
+│  3. 3 Clean Protocol Toggles  │ ML-KEM-768, Falcon-512, AES-256-GCM with         │
+│                               │ individual glowing control switches.             │
+│  4. Embedded `pqc_data` Field │ Human-readable post-quantum layer hierarchy      │
+│                               │ embedded directly inside every chat JSON frame.  │
+│  5. Unsaved Peer Visibility   │ Real-time message reception, auto-activation,    │
+│                               │ and bidirectional replies before saving contacts.│
+│  6. Live Crypto Telemetry     │ Real-time log table showing raw packet size,     │
 │                               │ IV/tag hex snippets, direction, and timestamps.  │
-│  6. Electron ESM Bridge       │ Dynamic import loader solving ERR_REQUIRE_ESM.   │
-│  7. Auto-Migration            │ Backs up legacy keys and regenerates Falcon-512. │
+│  7. Electron ESM Bridge       │ Dynamic import loader solving ERR_REQUIRE_ESM.   │
+│  8. Auto-Migration            │ Backs up legacy keys and regenerates Falcon-512. │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -134,36 +136,37 @@ Every message payload is encrypted under AES-256-GCM with a 96-bit random IV and
 
 ---
 
-## 🎛️ The 4 Interactive Protocol Toggles
+## 🎛️ The 3 Interactive Protocol Toggles
 
-Inside the **Identity & Settings** screen, four glowing switches allow full experimental control over the network traffic:
+Inside the **Identity & Settings** screen, three glowing control switches allow live experimental manipulation of the network traffic:
 
 ```
-┌─────────────────────────┐    ┌─────────────────────────┐
-│   ML-KEM-768 (Blue)     │    │   Falcon-512 (Orange)   │
-│  ● ON  : NIST FIPS 203  │    │  ● ON  : NIST FIPS 206  │
-│  ○ OFF : Classical ECDH │    │  ○ OFF : Skip Auth      │
-└─────────────────────────┘    └─────────────────────────┘
-┌─────────────────────────┐    ┌─────────────────────────┐
-│   AES-256-GCM (Red)     │    │ WIRESHARK MODE (Purple) │
-│  ● ON  : Ciphertext     │    │  ● ON  : ANALYSIS Frame │
-│  ○ OFF : Raw Plaintext  │    │  ○ OFF : Silent Frames  │
-└─────────────────────────┘    └─────────────────────────┘
+┌─────────────────────────────────┐    ┌─────────────────────────────────┐
+│       ML-KEM-768 (Blue)         │    │       Falcon-512 (Orange)       │
+│  ● ON  : NIST FIPS 203 (Kyber)  │    │  ● ON  : NIST FIPS 206 Lattice  │
+│  ○ OFF : Classical ECDH (P-256) │    │  ○ OFF : Skip Authentication    │
+└─────────────────────────────────┘    └─────────────────────────────────┘
+                 ┌─────────────────────────────────┐
+                 │       AES-256-GCM (Red)         │
+                 │  ● ON  : Authenticated Cipher   │
+                 │  ○ OFF : Raw Plaintext JSON     │
+                 └─────────────────────────────────┘
 ```
 
-| Toggle Combination | TCP Wire Difference Captured in Wireshark (Port `5050`) |
-|---|---|
-| **ALL ON (Default)** | Handshake exchanges `ML-KEM-768` (~1088B) + `Falcon-512` (~660B) auth signatures. Messages appear as base64 ciphertext in `CHAT_MESSAGE` frames. Plaintext is **100% invisible**. |
-| **AES OFF** | Messages are transmitted as unencrypted JSON: `{"type":"CHAT_MESSAGE_PLAIN","content":"<your readable message>"}`. Plaintext is **directly readable** in Wireshark. |
-| **ML-KEM OFF** | Replaces post-quantum `HANDSHAKE_KEM_RESP` (~1088B) with classical `ECDH_EXCHANGE` (~65B P-256 key exchange). |
-| **Falcon-512 OFF** | `HANDSHAKE_AUTH` frames are completely omitted from the TCP stream. |
-| **WIRESHARK MODE ON**| Encrypted message is immediately followed by a plaintext educational companion frame: `{"type":"ANALYSIS","data":"ML-KEM-768(Falcon-512(AES-256-GCM(iv:...:ct:...:tag:...)))"}` |
+| Toggle Combination | TCP Wire Frame Type | `pqc_data` Embedded Field on Wire |
+|---|---|---|
+| **ALL ON (Default)** | `CHAT_MESSAGE` (AES-256-GCM) | `"ML-KEM-768(Falcon-512(AES-256-GCM(<real_ciphertext>)))"` |
+| **Falcon-512 OFF** | `CHAT_MESSAGE` (AES-256-GCM) | `"ML-KEM-768(AES-256-GCM(<real_ciphertext>))"` |
+| **ML-KEM OFF** | `CHAT_MESSAGE` (AES-256-GCM) | `"Falcon-512(AES-256-GCM(<real_ciphertext>))"` |
+| **Only AES-256 ON** | `CHAT_MESSAGE` (AES-256-GCM) | `"AES-256-GCM(<real_ciphertext>)"` |
+| **AES OFF (ML-KEM + Falcon ON)** | `CHAT_MESSAGE_PLAIN` (Plaintext) | `"ML-KEM-768(Falcon-512(PLAINTEXT(<content>)))"` |
+| **ALL OFF** | `CHAT_MESSAGE_PLAIN` (Plaintext) | `"PLAINTEXT(<content>)"` |
 
 ---
 
 ## 🔄 5-Step PQC Handshake Protocol
 
-Before any message can be transmitted, `Kπyρτόn_wave~` executes a **cryptographically bound 5-step quantum handshake**:
+Before any chat message is transmitted, `Kπyρτόn_wave~` executes a **cryptographically bound 5-step quantum handshake**:
 
 ```
       INITIATOR (Node A)                                    RESPONDER (Node B)
@@ -195,16 +198,14 @@ Before any message can be transmitted, `Kπyρτόn_wave~` executes a **cryptogr
               │                                                      │
         [Direct 32-Byte AES Key]                               [Direct 32-Byte AES Key]
               │                                                      │
-              │◄─────────── AES-256-GCM Encrypted Chat ─────────────►│
-              │                                                      │
-              │── (Optional) ANALYSIS Frame (Wireshark Mode) ───────►│
+              │◄── CHAT_MESSAGE (Ciphertext + pqc_data metadata) ───►│
 ```
 
 ---
 
 ## 🔬 Real Wireshark Packet Capture Experiment
 
-You can observe your cryptographic configuration altering packets in real-time:
+You can observe your cryptographic configuration altering packets in real-time in Wireshark:
 
 ### Step 1: Start Two Local Instances
 In Terminal 1 (Node A on Port 5050):
@@ -224,15 +225,26 @@ npm run dev
 
 ### Step 2: Open Wireshark
 1. Launch the standalone **Wireshark** application.
-2. Select **Npcap Loopback Adapter** (for `127.0.0.1` traffic) or your local **Wi-Fi / Ethernet** interface.
-3. Apply filter:
+2. Select **`Adapter for loopback traffic capture`** (`\Device\NPF_Loopback`) for localhost (`127.0.0.1`) traffic.
+3. Apply any of the following display filters:
+   ```wireshark
+   tcp contains "pqc_data"
+   ```
+   *or*
    ```wireshark
    tcp.port == 5050 || tcp.port == 5051
    ```
 
-### Step 3: Run the Experiment
-1. **Plaintext Test:** In Node A, toggle **AES-256-GCM** to `OFF`. Connect to `127.0.0.1:5051` and send `"Hello Plaintext"`. In Wireshark, right-click any packet &rarr; **Follow &rarr; TCP Stream** to see the unencrypted text.
-2. **Encrypted + Analysis Test:** Toggle **AES-256-GCM** to `ON` and **WIRESHARK MODE** to `ON`. Send `"Encrypted Experiment"`. Inspect the TCP Stream to observe the encrypted payload followed by the nested `ANALYSIS` companion frame.
+### Step 3: Run the Live Inspection
+1. **Encrypted Quantum-Safe Message (Default):** Send `"Post-Quantum Confidential"` from Node A to Node B.
+   * Right-click the captured TCP packet &rarr; **Follow &rarr; TCP Stream** (or look at the Packet Bytes ASCII pane).
+   * Notice the raw JSON contains the genuine Base64 ciphertext along with the post-quantum hierarchy:
+     ```json
+     {"type":"CHAT_MESSAGE","messageId":"...","seqNum":1,"payload":{"ciphertext":"88Xj...","iv":"sv8z...","tag":"lL78...","seqNum":1},"pqc_data":"ML-KEM-768(Falcon-512(AES-256-GCM(88Xj...)))"}
+     ```
+   * *Note: The ciphertext in `pqc_data` is dynamic because AES-256-GCM generates a unique 96-bit random IV for every single message.*
+2. **Unsaved Peer Instant Chat:** Notice that Node B receives and renders the message **immediately in real-time** even if Node A is not yet in Node B's saved contacts. Node B can reply back directly over the encrypted channel or click **SAVE CONTACT** at any time.
+3. **Plaintext Wire Inspection:** Turn **AES-256-GCM** to `OFF` in Settings. Send `"Hello Plaintext"`. In Wireshark, the packet appears as `CHAT_MESSAGE_PLAIN` with `"pqc_data":"ML-KEM-768(Falcon-512(PLAINTEXT(Hello Plaintext)))"`.
 
 ---
 
@@ -266,7 +278,7 @@ npm run dev
 ## 📁 Project Architecture & Structure
 
 ```
-Quantu Secure/
+KRYPTON_WAVE/
 │
 ├── KRYPTON_WAVE_PQC_REPORT.md           # 📑 Detailed Engineering & PQC Report
 ├── Circuit_Diagram/                    # 🔌 Hardware Schematics & CAD
@@ -289,12 +301,12 @@ Quantu Secure/
 │   └── src/
 │       ├── crypto/                     # 🔐 Cryptographic Subsystem
 │       │   ├── pqc.js                  # ML-KEM-768 & Falcon-512 dynamic ESM bridge
-│       │   ├── session.js              # AES-256-GCM AEAD, zero-HKDF direct key & Wireshark Mode
+│       │   ├── session.js              # AES-256-GCM AEAD, direct 32B key & pqc_data builder
 │       │   └── identity.js             # Falcon-512 identity persistence & auto-migration
 │       │
 │       ├── network/                    # 📡 TCP Networking Subsystem
-│       │   ├── protocol.js             # 4-byte framing (ECDH, PLAIN, ANALYSIS frames)
-│       │   ├── peer.js                 # Config-aware TCP state machine & socket safety
+│       │   ├── protocol.js             # 4-byte big-endian framing & JSON dispatcher
+│       │   ├── peer.js                 # Config-aware TCP state machine & pqc_data embedder
 │       │   └── server.js               # PeerManager singleton & TCP server
 │       │
 │       ├── storage/                    # 🗄️ JSON Persistence Layer
@@ -304,17 +316,17 @@ Quantu Secure/
 │       │
 │       └── renderer/                   # 🎨 React 18 UI
 │           ├── App.jsx                 # App root & modal coordinator
-│           ├── store/useAppStore.js    # Zustand state store
+│           ├── store/useAppStore.js    # Zustand state store with auto-conversation activator
 │           ├── components/             # React modular components
-│           │   ├── Sidebar.jsx         # Contact list & Kπyρτόn_wave~ wordmark
-│           │   ├── ConversationView.jsx# Active chat, dynamic badge & WS banner
-│           │   ├── IdentityScreen.jsx  # 4 security toggles & live packet telemetry
-│           │   ├── WiresharkWarningBanner.jsx # Glowing purple warning banner
+│           │   ├── Sidebar.jsx         # Contact list, active/unsaved peers, & search
+│           │   ├── ContactItem.jsx     # Live message preview, timestamp, unread badge
+│           │   ├── ConversationView.jsx# Active chat, dynamic badge, & save contact banner
+│           │   ├── IdentityScreen.jsx  # 3 security toggles & live packet telemetry
 │           │   ├── ContextMenu.jsx     # Right-click dark glassmorphic popup
 │           │   ├── SecurityDetailsModal.jsx # Key inspector & fingerprint modal
 │           │   ├── AddPeerModal.jsx    # Handshake initiator modal
-│           │   ├── RenameContactModal.jsx # Contact rename modal
-│           │   └── WindowControls.jsx  # macOS-style traffic lights
+│           │   ├── RenameContactModal.jsx # Contact rename / save modal
+│           │   └── WindowControls.jsx  # Custom window buttons
 │           └── styles/index.css        # CSS Design System & neon toggle glows
 │
 └── Paper/                              # 📄 Project Synopsis & Academic Research (Preserved)
@@ -350,7 +362,7 @@ npm run dev
 ```
   Kπyρτόn_wave~    Post-Quantum Cryptographic Networking Experiment
   ──────────────────────────────────────────────────────────────────
-  ML-KEM-768 · Falcon-512 · AES-256-GCM · Wireshark Analysis Mode
+  ML-KEM-768 · Falcon-512 · AES-256-GCM · Embedded Wire Telemetry
 
   Select renderer port:
    [1] 5173  ← default
@@ -364,7 +376,7 @@ npm run dev
 ## 📦 Building for Production
 
 ```powershell
-cd "d:\Work\IOT\Quantu Secure\Web_App"
+cd "d:\Work\IOT\KRYPTON_WAVE\Web_App"
 npm run build
 ```
 Packaged binaries will be output to `Web_App/release/`.

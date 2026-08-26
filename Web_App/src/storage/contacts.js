@@ -51,21 +51,32 @@ function getContactByAddress(ip, port) {
 function saveContact(data) {
   const contacts = _read();
   const now = Date.now();
+  const portNum = Number(data.port);
 
+  let idx = -1;
   if (data.id) {
-    const idx = contacts.findIndex(c => c.id === data.id);
-    if (idx !== -1) {
-      contacts[idx] = { ...contacts[idx], ...data, lastSeen: now };
-      _write(contacts);
-      return contacts[idx];
-    }
+    idx = contacts.findIndex(c => c.id === data.id);
+  }
+  if (idx === -1 && data.ip && portNum) {
+    idx = contacts.findIndex(c => c.ip === data.ip && Number(c.port) === portNum);
+  }
+
+  if (idx !== -1) {
+    contacts[idx] = {
+      ...contacts[idx],
+      ...data,
+      port: portNum || contacts[idx].port,
+      lastSeen: now,
+    };
+    _write(contacts);
+    return contacts[idx];
   }
 
   const contact = {
     id:           data.id || uuidv4(),
     name:         data.name || 'Unknown',
     ip:           data.ip,
-    port:         data.port,
+    port:         portNum,
     kemPublicKey: data.kemPublicKey || null,
     sigPublicKey: data.sigPublicKey || null,
     fingerprint:  data.fingerprint  || null,

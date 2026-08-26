@@ -15,7 +15,14 @@ const path     = require('path');
 const fs       = require('fs');
 
 function getUserDataPath(...segments) {
-  return path.join(app.getPath('userData'), ...segments);
+  let baseDir;
+  try {
+    baseDir = (app && typeof app.getPath === 'function') ? app.getPath('userData') : null;
+  } catch {}
+  if (!baseDir) {
+    baseDir = process.env.ELECTRON_USER_DATA_DIR || path.join(require('os').tmpdir(), 'krypton-wave-data');
+  }
+  return path.join(baseDir, ...segments);
 }
 
 /**

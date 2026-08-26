@@ -11,9 +11,8 @@
  *   HANDSHAKE_AUTH        — Falcon-512 signature over transcript (if sigEnabled)
  *   HANDSHAKE_COMPLETE    — final ACK, session open
  *   ECDH_EXCHANGE         — X25519 pubkey (when kemEnabled === false)
- *   CHAT_MESSAGE          — AES-256-GCM encrypted payload (when aesEnabled)
- *   CHAT_MESSAGE_PLAIN    — plaintext message (when aesEnabled === false)
- *   ANALYSIS              — Wireshark mode analysis frame (intentionally plaintext)
+ *   CHAT_MESSAGE          — AES-256-GCM encrypted payload (with pqc_data metadata)
+ *   CHAT_MESSAGE_PLAIN    — plaintext message (with pqc_data metadata, when aesEnabled === false)
  *   TYPING_START          — peer started typing
  *   TYPING_STOP           — peer stopped typing
  *   MESSAGE_DELIVERED     — delivery receipt
@@ -35,12 +34,9 @@ const MSG = {
   // Key exchange (KEM-OFF mode)
   ECDH_EXCHANGE:      'ECDH_EXCHANGE',
 
-  // Chat messages
-  CHAT_MESSAGE:       'CHAT_MESSAGE',       // AES encrypted
-  CHAT_MESSAGE_PLAIN: 'CHAT_MESSAGE_PLAIN', // AES disabled — plaintext
-
-  // Wireshark Analysis Mode
-  ANALYSIS:           'ANALYSIS',
+  // Chat messages (embeds pqc_data metadata)
+  CHAT_MESSAGE:       'CHAT_MESSAGE',       // AES encrypted + pqc_data
+  CHAT_MESSAGE_PLAIN: 'CHAT_MESSAGE_PLAIN', // AES disabled — plaintext + pqc_data
 
   // Control
   TYPING_START:       'TYPING_START',

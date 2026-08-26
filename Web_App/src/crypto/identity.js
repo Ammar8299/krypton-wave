@@ -26,7 +26,14 @@ const { initPQC, kemKeyGen, sigKeyGen, toB64, fromB64 } = require('./pqc');
 const CURRENT_SIG_ALGORITHM = 'Falcon-512';
 
 function getIdentityPath() {
-  return path.join(app.getPath('userData'), 'identity.json');
+  let baseDir;
+  try {
+    baseDir = (app && typeof app.getPath === 'function') ? app.getPath('userData') : null;
+  } catch {}
+  if (!baseDir) {
+    baseDir = process.env.ELECTRON_USER_DATA_DIR || path.join(require('os').tmpdir(), 'krypton-wave-data');
+  }
+  return path.join(baseDir, 'identity.json');
 }
 
 /**

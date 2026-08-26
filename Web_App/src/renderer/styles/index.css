@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
-   QuantuSecure Design System — index.css
-   Palette: black (dominant) · green (accent) · red (alerts)
+   Kπyρτόn_wave~ Design System — index.css
+   Post-Quantum Cryptographic Traffic Laboratory
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Google Fonts (fallback if not loaded from index.html) ── */
@@ -42,8 +42,6 @@
   --color-sig-glow:       rgba(255, 140, 0, 0.25);
   --color-aes:            #FF3131;
   --color-aes-glow:       rgba(255, 49, 49, 0.25);
-  --color-wireshark:      #A855F7;
-  --color-wireshark-glow: rgba(168, 85, 247, 0.25);
 
   /* Text */
   --text-primary:    #f0f0f0;
@@ -350,6 +348,22 @@ html, body, #root {
   white-space: nowrap;
   align-self: flex-start;
   padding-top: 2px;
+}
+
+.unread-badge {
+  background: var(--green-primary);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  box-shadow: 0 0 8px var(--green-glow-md);
 }
 
 /* ── FAB — Floating Action Button ─────────────────────────────── */
@@ -1053,53 +1067,6 @@ html, body, #root {
    Kπyρτόn_wave~ — Experimental Cryptographic Styles
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Wireshark Card & Banner ─────────────────────────────────── */
-.wireshark-card {
-  border-color: rgba(168, 85, 247, 0.35);
-  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, var(--surface-1) 100%);
-  box-shadow: 0 0 25px rgba(168, 85, 247, 0.08);
-}
-
-.wireshark-warning-pill {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  border-radius: var(--radius-sm);
-  color: #c084fc;
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  animation: pulseWireshark 2.5s infinite ease-in-out;
-}
-
-@keyframes pulseWireshark {
-  0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.2); }
-  50%      { box-shadow: 0 0 24px rgba(168, 85, 247, 0.45); }
-}
-
-.wireshark-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  background: rgba(168, 85, 247, 0.12);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.4);
-  animation: fadeIn 0.2s ease-out;
-  flex-shrink: 0;
-}
-.wireshark-banner-icon { font-size: 18px; }
-.wireshark-banner-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #d8b4fe;
-  letter-spacing: 0.04em;
-}
-.wireshark-banner-desc {
-  font-size: 10.5px;
-  color: #c084fc;
-  margin-top: 1px;
-}
-
 /* ── Interactive Cryptographic Toggles ──────────────────────── */
 .crypto-toggle-row {
   display: flex;
@@ -1182,17 +1149,6 @@ html, body, #root {
 .toggle-btn.active-aes .toggle-indicator {
   background: var(--color-aes);
   box-shadow: 0 0 8px var(--color-aes);
-}
-
-.toggle-btn.active-wireshark {
-  border-color: var(--color-wireshark);
-  background: rgba(168, 85, 247, 0.18);
-  color: #c084fc;
-  box-shadow: 0 0 16px var(--color-wireshark-glow);
-}
-.toggle-btn.active-wireshark .toggle-indicator {
-  background: var(--color-wireshark);
-  box-shadow: 0 0 8px var(--color-wireshark);
 }
 
 /* ── Live Security Status Bar ───────────────────────────────── */

@@ -32,6 +32,7 @@ const api = {
   clearAllData: () => ipcRenderer.invoke('clear-all-data'),
 
   // ── Networking ────────────────────────────────────────────────────────────
+  getActivePeers: () => ipcRenderer.invoke('get-active-peers'),
   connectPeer: (ip, port) => ipcRenderer.invoke('connect-peer', { ip, port }),
   sendMessage: (contactId, text) => ipcRenderer.invoke('send-message', { contactId, text }),
   sendTyping: (contactId, isTyping) => ipcRenderer.invoke('send-typing', { contactId, isTyping }),

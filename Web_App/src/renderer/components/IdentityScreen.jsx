@@ -2,7 +2,21 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { CopyIcon, ShieldIcon } from './Icons';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
+
+function formatHexSnippet(b64Str, byteCount = 4) {
+  if (!b64Str) return '—';
+  try {
+    const raw = atob(b64Str);
+    let hex = '';
+    for (let i = 0; i < Math.min(raw.length, byteCount); i++) {
+      hex += raw.charCodeAt(i).toString(16).padStart(2, '0');
+    }
+    return hex + (raw.length > byteCount ? '…' : '');
+  } catch {
+    return b64Str.slice(0, 8) + '…';
+  }
+}
 
 function useCopy(text) {
   const [copied, setCopied] = useState(false);
@@ -16,7 +30,7 @@ function useCopy(text) {
 }
 
 function getStatusBadge(config) {
-  const { kemEnabled, sigEnabled, aesEnabled, wiresharkMode } = config || {};
+  const { kemEnabled, sigEnabled, aesEnabled } = config || {};
   if (!kemEnabled && !sigEnabled && !aesEnabled) {
     return {
       text: '⚠️ NO MESSAGE ENCRYPTION — PLAINTEXT MODE',
@@ -175,42 +189,7 @@ export default function IdentityScreen() {
         </div>
       </div>
 
-      {/* ── 2. Wireshark Analysis Mode (Above Cryptographic Stack) ── */}
-      <div className="info-card wireshark-card">
-        <div className="info-card-title" style={{ color: 'var(--color-wireshark)' }}>
-          WIRESHARK ANALYSIS MODE
-        </div>
-        <div className="crypto-toggle-row">
-          <div className="crypto-toggle-info">
-            <div className="crypto-toggle-name" style={{ color: 'var(--color-wireshark)' }}>
-              WIRESHARK MODE
-            </div>
-            <div className="crypto-toggle-desc font-mono">
-              Appends readable plaintext ANALYSIS frames to TCP stream for Wireshark inspection
-            </div>
-          </div>
-          <button
-            id="toggle-wireshark-btn"
-            className={`toggle-btn ${securityConfig.wiresharkMode ? 'active-wireshark' : ''}`}
-            onClick={() => setSecurityConfig({ wiresharkMode: !securityConfig.wiresharkMode })}
-          >
-            <span className="toggle-indicator" />
-            <span className="font-mono">{securityConfig.wiresharkMode ? 'ON' : 'OFF'}</span>
-          </button>
-        </div>
-
-        {securityConfig.wiresharkMode ? (
-          <div className="wireshark-warning-pill font-mono">
-            ⚠️ WIRESHARK ANALYSIS MODE ACTIVE — Debug metadata is intentionally visible on the network.
-          </div>
-        ) : (
-          <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
-            Normal mode: Only standard framed payloads are transmitted over TCP.
-          </div>
-        )}
-      </div>
-
-      {/* ── 3. Cryptographic Stack with Toggles ──────────────────── */}
+      {/* ── 2. Cryptographic Stack with Toggles ──────────────────── */}
       <div className="info-card">
         <div className="info-card-title">CRYPTOGRAPHIC STACK</div>
 
@@ -287,7 +266,7 @@ export default function IdentityScreen() {
         )}
       </div>
 
-      {/* ── 4. Live Crypto Telemetry ─────────────────────────────── */}
+      {/* ── 3. Live Crypto Telemetry ─────────────────────────────── */}
       <div className="info-card">
         <div className="info-card-title">LIVE CRYPTO TELEMETRY (REAL PACKETS)</div>
         <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
@@ -307,21 +286,21 @@ export default function IdentityScreen() {
               <span>PAYLOAD SIZE</span>
               <span>IV / TAG</span>
             </div>
-            {cryptoEvents.map((evt) => {
-              const timeStr = new Date(evt.timestamp).toLocaleTimeString();
+            {(cryptoEvents || []).map((evt, idx) => {
+              const timeStr = evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString() : '--:--:--';
               const isEnc = evt.encrypted;
-              const ivSnippet = evt.iv ? `${Buffer.from(evt.iv, 'base64').toString('hex').slice(0, 8)}…` : '—';
-              const tagSnippet = evt.tag ? `${Buffer.from(evt.tag, 'base64').toString('hex').slice(0, 8)}…` : '—';
+              const ivSnippet = formatHexSnippet(evt.iv, 4);
+              const tagSnippet = formatHexSnippet(evt.tag, 4);
               return (
-                <div key={`${evt.id}-${evt.timestamp}`} className="telemetry-row font-mono">
+                <div key={`${evt.id || idx}-${evt.timestamp || idx}`} className="telemetry-row font-mono">
                   <span style={{ color: 'var(--text-muted)' }}>{timeStr}</span>
                   <span className={evt.direction === 'sent' ? 'telemetry-sent' : 'telemetry-recv'}>
-                    {evt.direction.toUpperCase()}
+                    {(evt.direction || 'EVENT').toUpperCase()}
                   </span>
                   <span style={{ color: isEnc ? 'var(--color-aes)' : 'var(--red-alert)' }}>
-                    {evt.algo}
+                    {evt.algo || (isEnc ? 'AES-256-GCM' : 'PLAINTEXT')}
                   </span>
-                  <span>{evt.byteSize} B</span>
+                  <span>{evt.byteSize || 0} B</span>
                   <span style={{ color: 'var(--text-secondary)' }}>
                     {isEnc ? `iv:${ivSnippet} tag:${tagSnippet}` : 'RAW PLAINTEXT'}
                   </span>

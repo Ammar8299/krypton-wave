@@ -105,49 +105,43 @@ class SeqTracker {
   }
 }
 
-// ── Wireshark Analysis Mode ───────────────────────────────────────────────────
+// ── Human-Readable PQC Representation (pqc_data) ───────────────────────────
 /**
- * Build the nested analysis label string for Wireshark Mode.
- * This is intentionally transmitted as PLAINTEXT for educational inspection.
+ * Build the human-readable pqc_data representation of the active cryptographic configuration.
+ * Transmitted directly inside CHAT_MESSAGE and CHAT_MESSAGE_PLAIN JSON frames.
  *
  * NEVER exposes: session keys, shared secrets, private keys, or decrypted
  * message content when AES is enabled.
  *
  * @param {object} securityConfig - { kemEnabled, sigEnabled, aesEnabled }
- * @param {object|null} payload   - AES envelope { ciphertext, iv, tag, seqNum } or null
- * @param {string|null} plainContent - plaintext only when aesEnabled === false
+ * @param {string|null} ciphertext - real ciphertext string from payload.ciphertext (when AES is ON)
+ * @param {string|null} plainContent - actual message text (when AES is OFF)
  * @returns {string}
  */
-function buildAnalysisString(securityConfig, payload, plainContent) {
-  const { kemEnabled, sigEnabled, aesEnabled } = securityConfig;
+function buildPQCData(securityConfig, ciphertext, plainContent) {
+  const { kemEnabled, sigEnabled, aesEnabled } = securityConfig || {};
 
-  // Inner layer
+  // Extract string if object was passed
+  const ctStr = typeof ciphertext === 'object' && ciphertext !== null ? ciphertext.ciphertext : ciphertext;
+
   let inner;
-  if (aesEnabled && payload) {
-    // Show real ciphertext in hex. iv and tag are already transmitted as protocol
-    // metadata so safe to show here.
-    const ctHex  = Buffer.from(payload.ciphertext, 'base64').toString('hex');
-    const ivHex  = Buffer.from(payload.iv, 'base64').toString('hex');
-    const tagHex = Buffer.from(payload.tag, 'base64').toString('hex');
-    inner = `AES-256-GCM(iv:${ivHex.slice(0, 16)}…,ct:${ctHex.slice(0, 24)}…,tag:${tagHex.slice(0, 16)}…)`;
+  if (aesEnabled && ctStr) {
+    inner = `AES-256-GCM(${ctStr})`;
   } else {
-    // AES is OFF — plain content is already visible on the wire
-    inner = plainContent || '<empty>';
+    inner = `PLAINTEXT(${plainContent || ''})`;
   }
 
-  // Wrap with Falcon-512 label if sig enabled
   if (sigEnabled) inner = `Falcon-512(${inner})`;
-
-  // Wrap with ML-KEM-768 label if kem enabled
   if (kemEnabled) inner = `ML-KEM-768(${inner})`;
 
-  return `data(${inner})`;
+  return inner;
 }
 
 module.exports = {
   deriveSessionKey,
   encryptMessage,
   decryptMessage,
-  buildAnalysisString,
+  buildPQCData,
+  buildAnalysisString: buildPQCData,
   SeqTracker,
 };

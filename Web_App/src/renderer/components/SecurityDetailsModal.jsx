@@ -37,9 +37,9 @@ export default function SecurityDetailsModal() {
     });
   };
 
-  const fingerprint = contact.fingerprint || '—';
-  const kemPub = contact.kemPublicKey || 'Exchanged in ephemeral session';
-  const sigPub = contact.sigPublicKey || 'Exchanged in ephemeral session';
+  const fingerprint = contact?.fingerprint || '—';
+  const kemPub = contact?.kemPublicKey || 'Exchanged in ephemeral session';
+  const sigPub = contact?.sigPublicKey || 'Exchanged in ephemeral session';
 
   return (
     <div className="modal-overlay modal-overlay-enter" onClick={(e) => e.target === e.currentTarget && close()}>

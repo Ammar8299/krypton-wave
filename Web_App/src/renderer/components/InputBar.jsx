@@ -35,7 +35,7 @@ export default function InputBar({ contactId, isOnline }) {
   };
 
   const handleSend = useCallback(async () => {
-    if (!text.trim() || sending || !isOnline) return;
+    if (!text.trim() || sending) return;
     clearTimeout(typingTimer);
     if (isTyping.current) { isTyping.current = false; getApi()?.sendTyping(contactId, false); }
 
@@ -49,7 +49,7 @@ export default function InputBar({ contactId, isOnline }) {
     setText('');
     await sendMessage(content);
     setSending(false);
-  }, [text, sending, isOnline, contactId, sendMessage]);
+  }, [text, sending, contactId, sendMessage]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -63,11 +63,11 @@ export default function InputBar({ contactId, isOnline }) {
       <textarea
         id="message-input"
         className="message-input"
-        placeholder={isOnline ? 'Type a message…' : 'Peer offline — connect first'}
+        placeholder={isOnline ? 'Type a message…' : 'Type a message (auto-connects to peer)...'}
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        disabled={!isOnline}
+        disabled={false}
         rows={1}
         style={{ height: 'auto' }}
         onInput={e => {
@@ -80,7 +80,7 @@ export default function InputBar({ contactId, isOnline }) {
         ref={sendBtnRef}
         className="send-btn"
         onClick={handleSend}
-        disabled={!text.trim() || sending || !isOnline}
+        disabled={!text.trim() || sending}
         title="Send (Enter)"
       >
         <SendIcon size={16} />

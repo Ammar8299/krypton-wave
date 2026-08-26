@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppStore } from './store/useAppStore';
+import ErrorBoundary from './components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import ConversationView from './components/ConversationView';
 import IdentityScreen from './components/IdentityScreen';
@@ -14,17 +15,19 @@ export default function App() {
   useEffect(() => { init(); }, []);
 
   return (
-    <div className="app-container">
-      <Sidebar />
+    <ErrorBoundary>
+      <div className="app-container">
+        <Sidebar />
 
-      {view === 'chat'     && <ConversationView />}
-      {view === 'identity' && <IdentityScreen />}
+        {view === 'chat'     && <ConversationView />}
+        {view === 'identity' && <IdentityScreen />}
 
-      {showAddModal && <AddPeerModal />}
-      {renameModalPeer && <RenameContactModal />}
-      {securityModalPeer && <SecurityDetailsModal />}
+        {showAddModal && <AddPeerModal />}
+        {renameModalPeer && <RenameContactModal />}
+        {securityModalPeer && <SecurityDetailsModal />}
 
-      <ContextMenu />
-    </div>
+        <ContextMenu />
+      </div>
+    </ErrorBoundary>
   );
 }

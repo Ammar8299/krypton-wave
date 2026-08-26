@@ -11,8 +11,9 @@ For complete system architecture, hardware circuit schematics, cryptographic spe
 * 🟠 **NIST FIPS 206 Falcon-512:** True post-quantum lattice signatures (~660B).
 * 🔵 **NIST FIPS 203 ML-KEM-768:** Post-quantum key encapsulation.
 * 🔴 **AES-256-GCM (Zero-HKDF):** 32-byte shared secret directly powers AEAD encryption.
-* 🟣 **Wireshark Analysis Mode:** Emits readable companion metadata frames for network packet inspection.
-* 🎛️ **4 Live Wire Toggles:** `ML-KEM-768`, `Falcon-512`, `AES-256-GCM`, `WIRESHARK MODE` inside the Identity & Settings screen.
+* 🟢 **Embedded `pqc_data` Wire Field:** Human-readable layer hierarchy (`ML-KEM-768(Falcon-512(AES-256-GCM(...)))`) directly embedded into every chat JSON frame.
+* 🎛️ **3 Clean Wire Toggles:** `ML-KEM-768`, `Falcon-512`, and `AES-256-GCM` inside the Identity & Settings screen.
+* 💬 **Unsaved Peer Instant Messaging:** Real-time incoming message rendering, auto-activation, and bidirectional chat before saving contacts.
 * 📊 **Live Crypto Telemetry:** Real-time table logging transmitted TCP message packets with IVs, tags, and sizes.
 
 ---
@@ -42,7 +43,8 @@ npm run dev
 $env:ELECTRON_USER_DATA_DIR="$env:TEMP\krypton_peer2"
 npm run dev
 ```
-In Wireshark, apply capture filter: `tcp.port == 5050 || tcp.port == 5051`
+In Wireshark, select `Adapter for loopback traffic capture` and apply filter:
+`tcp contains "pqc_data"` or `tcp.port == 5050 || tcp.port == 5051`
 
 ---
 

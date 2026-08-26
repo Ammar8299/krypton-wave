@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 
-// Lazy getter — window.quantuSecure is injected by Electron's preload.js.
+// Lazy getter — window.kryptonWave is injected by Electron's preload.js.
 // In a plain browser (Vite dev server without Electron) it is undefined;
 // all actions guard against this so the UI renders without crashing.
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 
 export const useAppStore = create((set, get) => ({
   // ── Identity ──────────────────────────────────────────────────
@@ -11,10 +11,9 @@ export const useAppStore = create((set, get) => ({
 
   // ── Security Configuration (Kπyρτόn_wave~) ────────────────────
   securityConfig: {
-    kemEnabled:    true,
-    sigEnabled:    true,
-    aesEnabled:    true,
-    wiresharkMode: false,
+    kemEnabled: true,
+    sigEnabled: true,
+    aesEnabled: true,
   },
   configDirty: false, // true when user changed config with active connections
   cryptoEvents: [],   // last 8 live packet/crypto events
@@ -56,15 +55,65 @@ export const useAppStore = create((set, get) => ({
     const contacts = (await api.getContacts()) || [];
     const blockedPeers = (await api.getBlockedPeers()) || [];
     const securityConfig = (await api.getSecurityConfig()) || get().securityConfig;
-    set({ identity, contacts, blockedPeers, securityConfig });
+    const activePeers = (await api.getActivePeers?.()) || [];
+
+    const initialEphemerals = [];
+    const initialStatus = {};
+    for (const peer of activePeers) {
+      initialStatus[peer.id] = { online: true, typing: false };
+      const isSaved = contacts.some(c => `${c.ip}:${c.port}` === peer.id || c.id === peer.id);
+      if (!isSaved) {
+        initialEphemerals.push(peer);
+      }
+    }
+
+    set({
+      identity,
+      contacts,
+      blockedPeers,
+      securityConfig,
+      ephemeralPeers: initialEphemerals,
+      peerStatus: initialStatus,
+    });
 
     // Subscribe to push events from main process
     api.onMessageReceived(({ contactId, message }) => {
-      const { blockedPeers } = get();
+      const { blockedPeers, contacts, ephemeralPeers, activeContactId } = get();
       if (blockedPeers.includes(contactId)) return; // ignore blocked
 
+      // 1. Ensure peer is registered in ephemeralPeers if not already saved
+      const isSaved = contacts.some(c => `${c.ip}:${c.port}` === contactId || c.id === contactId);
+      if (!isSaved) {
+        const exists = ephemeralPeers.some(p => p.id === contactId);
+        if (!exists) {
+          const parts = (contactId || '').split(':');
+          const newPeer = {
+            id: contactId,
+            ip: parts[0] || '127.0.0.1',
+            port: Number(parts[1] || 5050),
+            name: message?.senderName || 'Unknown Peer',
+          };
+          set(state => ({ ephemeralPeers: [...state.ephemeralPeers, newPeer] }));
+        }
+      }
+
+      // 2. Add message to local store
       get().addMessageToStore(contactId, message);
-      // Send read receipt if this contact is active
+
+      // 3. Mark peer online
+      set(state => ({
+        peerStatus: {
+          ...state.peerStatus,
+          [contactId]: { ...(state.peerStatus[contactId] || {}), online: true }
+        }
+      }));
+
+      // 4. If no contact is currently open, automatically activate this conversation so the message is visible immediately
+      if (!activeContactId) {
+        set({ activeContactId: contactId, view: 'chat' });
+      }
+
+      // 5. Send read receipt if this contact is active
       if (get().activeContactId === contactId) {
         getApi()?.updateMessageStatus(message.id, 'read');
       }
@@ -80,22 +129,32 @@ export const useAppStore = create((set, get) => ({
 
       switch (type) {
         case 'connected':
+        case 'incoming': {
           set({
             peerStatus: { ...peerStatus, [contactId]: { online: true, typing: false } },
             configDirty: false,
           });
-          // If not a saved contact, add to ephemeral list with all crypto keys
-          if (!contacts.find(c => `${c.ip}:${c.port}` === contactId)) {
+          // If not a saved contact, add or update ephemeral list with all crypto keys
+          const isSaved = contacts.some(c => `${c.ip}:${c.port}` === contactId || c.id === contactId);
+          if (!isSaved) {
             const existingIdx = ephemeralPeers.findIndex(p => p.id === contactId);
+            const peerData = {
+              id: contactId,
+              ip: data?.ip || contactId.split(':')[0] || '127.0.0.1',
+              port: data?.port || Number(contactId.split(':')[1]) || 5050,
+              name: data?.name || 'Unknown',
+              ...data,
+            };
             if (existingIdx === -1) {
-              set({ ephemeralPeers: [...ephemeralPeers, { id: contactId, ...data }] });
+              set(state => ({ ephemeralPeers: [...state.ephemeralPeers, peerData] }));
             } else {
               const updated = [...ephemeralPeers];
-              updated[existingIdx] = { ...updated[existingIdx], ...data };
+              updated[existingIdx] = { ...updated[existingIdx], ...peerData };
               set({ ephemeralPeers: updated });
             }
           }
           break;
+        }
         case 'disconnected':
           set({ peerStatus: { ...peerStatus, [contactId]: { online: false, typing: false } } });
           break;
@@ -105,14 +164,6 @@ export const useAppStore = create((set, get) => ({
         case 'receipt':
           get().updateMessageStatusInStore(contactId, data.messageId, data.type);
           break;
-        case 'incoming': {
-          const alreadyEphemeral = get().ephemeralPeers.find(p => p.id === contactId);
-          if (!alreadyEphemeral && !contacts.find(c => `${c.ip}:${c.port}` === contactId)) {
-            set({ ephemeralPeers: [...get().ephemeralPeers, { id: contactId, ...data }] });
-          }
-          set({ peerStatus: { ...get().peerStatus, [contactId]: { online: true, typing: false } } });
-          break;
-        }
         case 'error':
           set({ peerStatus: { ...peerStatus, [contactId]: { online: false, typing: false } } });
           break;

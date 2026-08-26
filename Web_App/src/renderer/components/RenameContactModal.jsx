@@ -1,27 +1,65 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+'use strict';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { useAppStore } from '../store/useAppStore';
 import { CloseIcon } from './Icons';
 
 export default function RenameContactModal() {
-  const { renameModalPeer, setRenameModalPeer, saveContact, renameContact, contacts, setActiveContact } = useAppStore();
-  const [name, setName] = useState(renameModalPeer?.contact?.name || '');
+  const {
+    renameModalPeer,
+    setRenameModalPeer,
+    saveContact,
+    renameContact,
+    contacts,
+    ephemeralPeers,
+    setActiveContact,
+  } = useAppStore();
+
   const modalRef = useRef(null);
+
+  const contactId = renameModalPeer?.contactId || '';
+  const peerContact = renameModalPeer?.contact || null;
+
+  // Check if contact already exists in saved contacts list
+  const existingContact = contacts.find(
+    c => `${c.ip}:${c.port}` === contactId || (peerContact?.id && c.id === peerContact.id)
+  ) || null;
+
+  // Check ephemeral list for incoming/unregistered peer info
+  const ephemeralPeer = ephemeralPeers.find(p => p.id === contactId) || null;
+
+  // Resolve initial default name
+  const defaultName = existingContact?.name || peerContact?.name || ephemeralPeer?.name || '';
+  const [name, setName] = useState(defaultName);
+
+  useEffect(() => {
+    setName(defaultName);
+  }, [renameModalPeer, defaultName]);
 
   useLayoutEffect(() => {
     if (modalRef.current) {
-      gsap.fromTo(modalRef.current, { opacity: 0, scale: 0.93, y: 8 }, { opacity: 1, scale: 1, y: 0, duration: 0.2, ease: 'back.out(1.5)' });
+      gsap.fromTo(
+        modalRef.current,
+        { opacity: 0, scale: 0.93, y: 8 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.2, ease: 'back.out(1.5)' }
+      );
     }
   }, []);
 
   if (!renameModalPeer) return null;
 
-  const { contactId, contact, isEphemeral } = renameModalPeer;
-  const isExisting = Boolean(contacts.find(c => `${c.ip}:${c.port}` === contactId || c.id === contact.id));
+  const isExisting = Boolean(existingContact);
 
   const close = () => {
     if (modalRef.current) {
-      gsap.to(modalRef.current, { opacity: 0, scale: 0.95, y: 4, duration: 0.14, ease: 'power2.in', onComplete: () => setRenameModalPeer(null) });
+      gsap.to(modalRef.current, {
+        opacity: 0,
+        scale: 0.95,
+        y: 4,
+        duration: 0.14,
+        ease: 'power2.in',
+        onComplete: () => setRenameModalPeer(null),
+      });
     } else {
       setRenameModalPeer(null);
     }
@@ -29,20 +67,24 @@ export default function RenameContactModal() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
 
-    if (isExisting) {
-      await renameContact(contact.id || contactId, name.trim());
+    if (isExisting && existingContact) {
+      await renameContact(existingContact.id || contactId, trimmed);
     } else {
-      // Save new contact
-      const [ip, port] = contactId.split(':');
+      // Parse IP and Port safely
+      const parts = contactId.split(':');
+      const ip = peerContact?.ip || ephemeralPeer?.ip || parts[0] || '127.0.0.1';
+      const port = Number(peerContact?.port || ephemeralPeer?.port || parts[1] || 5050);
+
       await saveContact({
-        name: name.trim(),
-        ip: contact.ip || ip,
-        port: Number(contact.port || port),
-        kemPublicKey: contact.kemPublicKey || null,
-        sigPublicKey: contact.sigPublicKey || null,
-        fingerprint: contact.fingerprint || null,
+        name: trimmed,
+        ip,
+        port,
+        kemPublicKey: peerContact?.kemPublicKey || ephemeralPeer?.kemPublicKey || null,
+        sigPublicKey: peerContact?.sigPublicKey || ephemeralPeer?.sigPublicKey || null,
+        fingerprint:  peerContact?.fingerprint  || ephemeralPeer?.fingerprint  || null,
       });
     }
 

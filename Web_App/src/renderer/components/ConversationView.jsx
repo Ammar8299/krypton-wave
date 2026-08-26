@@ -4,28 +4,26 @@ import { useAppStore } from '../store/useAppStore';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 import InputBar from './InputBar';
-import WiresharkWarningBanner from './WiresharkWarningBanner';
 import { LockIcon, MessageCircleIcon } from './Icons';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 
 function getContactDisplayName(store, contactId) {
-  const saved = store.contacts.find(c => `${c.ip}:${c.port}` === contactId);
-  if (saved) return { name: saved.name, initial: saved.name[0].toUpperCase(), contact: saved, isEphemeral: false };
+  const saved = store.contacts.find(c => `${c.ip}:${c.port}` === contactId || c.id === contactId);
+  if (saved) return { name: saved.name, initial: (saved.name || '?')[0].toUpperCase(), contact: saved, isEphemeral: false };
   const ep = store.ephemeralPeers.find(p => p.id === contactId);
-  if (ep) return { name: ep.name || 'Unknown', initial: (ep.name || '?')[0].toUpperCase(), contact: null, isEphemeral: true };
-  return { name: contactId, initial: '?', contact: null, isEphemeral: false };
+  if (ep) return { name: ep.name || 'Unknown', initial: (ep.name || '?')[0].toUpperCase(), contact: ep, isEphemeral: true };
+  return { name: contactId, initial: '?', contact: null, isEphemeral: true };
 }
 
 function getEncBadgeText(config) {
-  const { kemEnabled, sigEnabled, aesEnabled, wiresharkMode } = config || {};
+  const { kemEnabled, sigEnabled, aesEnabled } = config || {};
   const parts = [];
   if (kemEnabled) parts.push('ML-KEM');
   if (sigEnabled) parts.push('Falcon-512');
   if (aesEnabled) parts.push('AES-256');
   if (!aesEnabled) parts.push('⚠ PLAIN');
   if (parts.length === 0) parts.push('⚠ UNENCRYPTED');
-  if (wiresharkMode) parts.push('🧪 WS');
   return parts.join(' · ');
 }
 
@@ -83,6 +81,17 @@ export default function ConversationView() {
     });
   };
 
+  const handleConnect = async () => {
+    const parts = (activeContactId || '').split(':');
+    const ip = parts[0] || '127.0.0.1';
+    const port = Number(parts[1] || 5050);
+    try {
+      await getApi()?.connectPeer(ip, port);
+    } catch (e) {
+      console.error('Failed to connect to peer:', e);
+    }
+  };
+
   return (
     <div className="conversation-pane">
       {/* Header */}
@@ -123,6 +132,28 @@ export default function ConversationView() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, WebkitAppRegion: 'no-drag' }}>
+          {!status.online && !isBlocked && (
+            <button
+              id="header-connect-btn"
+              className="btn btn-outline font-mono"
+              style={{
+                height: 26,
+                padding: '0 10px',
+                fontSize: 11,
+                color: 'var(--green-accent)',
+                borderColor: 'rgba(0,255,65,0.4)',
+                background: 'rgba(0,255,65,0.06)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+              onClick={handleConnect}
+              title="Initiate post-quantum handshake to connect"
+            >
+              ⚡ CONNECT
+            </button>
+          )}
+
           <div
             className={`enc-badge ${isPlaintext ? 'enc-badge--insecure' : ''}`}
             onClick={handleSecurityClick}
@@ -144,9 +175,6 @@ export default function ConversationView() {
           </button>
         </div>
       </div>
-
-      {/* Wireshark Warning Banner if active */}
-      <WiresharkWarningBanner />
 
       {/* Unsaved / Unknown Sender Banner */}
       {isEphemeral && !isBlocked && (

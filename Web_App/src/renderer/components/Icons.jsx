@@ -1,4 +1,4 @@
-// Icons.jsx — Inline SVG icon library for QuantuSecure
+// Icons.jsx — Inline SVG icon library for Kπyρτόn_wave~
 import React from 'react';
 
 export const ShieldIcon = ({ className = '', size = 24 }) => (

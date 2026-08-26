@@ -15,6 +15,7 @@ const http     = require('http');
 const readline = require('readline');
 const { spawn } = require('child_process');
 const path     = require('path');
+const os       = require('os');
 
 // ── ANSI colors ────────────────────────────────────────────────────────────────
 const c = {
@@ -136,15 +137,26 @@ async function main() {
 
   console.log(`\n  ${g('✓')} Vite ready — launching Electron\n`);
 
+  const electronEnv = {
+    ...process.env,
+    NODE_ENV:  'development',
+    VITE_PORT: String(port),
+  };
+
+  // If port is not default (5174, 5175, etc.) and no custom userData is specified,
+  // automatically create an isolated profile & cache directory for this instance:
+  if (String(port) !== '5173' && !process.env.ELECTRON_USER_DATA_DIR) {
+    electronEnv.ELECTRON_USER_DATA_DIR = path.join(
+      process.env.APPDATA || os.tmpdir(),
+      'krypton-wave-peer-' + port
+    );
+  }
+
   const electron = spawn('npx', ['electron', '.'], {
     cwd:   path.resolve(__dirname, '..'),
     stdio: 'inherit',
     shell: true,
-    env: {
-      ...process.env,
-      NODE_ENV:  'development',
-      VITE_PORT: String(port),
-    },
+    env:   electronEnv,
   });
 
   electron.on('error', err => console.error('  Electron error:', err.message));

@@ -11,10 +11,14 @@ function formatTime(ts) {
 }
 
 export default function ContactItem({ contact, contactId, isActive, isOnline, isEphemeral, onClick }) {
-  const { setContextMenu, blockedPeers } = useAppStore();
+  const { setContextMenu, blockedPeers, messages } = useAppStore();
   const initial = (contact.name || '?')[0].toUpperCase();
   const address = `${contact.ip}:${contact.port}`;
   const isBlocked = blockedPeers.includes(contactId);
+
+  const contactMsgs = (messages && messages[contactId]) || [];
+  const lastMsg = contactMsgs.length > 0 ? contactMsgs[contactMsgs.length - 1] : null;
+  const unreadCount = !isActive ? contactMsgs.filter(m => m.direction === 'received' && m.status !== 'read').length : 0;
 
   const handleContextMenu = (e) => {
     e.preventDefault();
@@ -27,6 +31,12 @@ export default function ContactItem({ contact, contactId, isActive, isOnline, is
       isEphemeral,
     });
   };
+
+  const previewText = lastMsg
+    ? (lastMsg.direction === 'sent' ? `You: ${lastMsg.content}` : lastMsg.content)
+    : address;
+
+  const timeToDisplay = lastMsg?.timestamp || contact.lastSeen;
 
   return (
     <div
@@ -59,13 +69,23 @@ export default function ContactItem({ contact, contactId, isActive, isOnline, is
             </span>
           )}
         </div>
-        <div className="contact-preview font-mono" style={{ fontSize: 11 }}>{address}</div>
+        <div
+          className="contact-preview font-mono"
+          style={{ fontSize: 11, color: unreadCount > 0 ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+        >
+          {previewText}
+        </div>
       </div>
 
-      {/* Timestamp */}
-      {contact.lastSeen && (
-        <div className="contact-time">{formatTime(contact.lastSeen)}</div>
-      )}
+      {/* Right Column: Time & Unread Badge */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center' }}>
+        {timeToDisplay && (
+          <div className="contact-time">{formatTime(timeToDisplay)}</div>
+        )}
+        {unreadCount > 0 && (
+          <span className="unread-badge font-mono">{unreadCount}</span>
+        )}
+      </div>
     </div>
   );
 }
