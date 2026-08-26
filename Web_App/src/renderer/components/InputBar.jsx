@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { useAppStore } from '../store/useAppStore';
 import { SendIcon } from './Icons';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 let typingTimer = null;
 
 export default function InputBar({ contactId, isOnline }) {

@@ -5,8 +5,11 @@
  * PeerManager is a singleton that:
  *  - Runs the TCP server (net.createServer)
  *  - Maintains a Map of contactId → PeerConnection
+ *  - Manages active security configuration across connections
  *  - Provides sendMessage, sendTyping, connectPeer, disconnectPeer APIs
- *  - Fires callbacks: onMessage, onPeerEvent, onIncomingPeer
+ *  - Fires callbacks: onMessage, onPeerEvent, onIncomingPeer, onCryptoEvent
+ *
+ * Kπyρτόn_wave~ — cryptographic networking experiment
  */
 
 const net  = require('net');
@@ -20,11 +23,27 @@ function cleanIp(ip) {
   return ip;
 }
 
-function createPeerManager({ identity, onMessage, onPeerEvent, onIncomingPeer }) {
+function createPeerManager({ identity, securityConfig, onMessage, onPeerEvent, onIncomingPeer, onCryptoEvent }) {
   /** Map<contactId, PeerConnection> */
   const peers = new Map();
   let server  = null;
   let listenPort = identity.listenPort || 5050;
+  let activeSecurityConfig = {
+    kemEnabled: true,
+    sigEnabled: true,
+    aesEnabled: true,
+    wiresharkMode: false,
+    ...securityConfig,
+  };
+
+  function updateSecurityConfig(newConfig) {
+    activeSecurityConfig = { ...activeSecurityConfig, ...newConfig };
+    console.log('[server] Updated active security config:', activeSecurityConfig);
+  }
+
+  function getSecurityConfig() {
+    return { ...activeSecurityConfig };
+  }
 
   // ── Wire up a PeerConnection's events ───────────────────────────────────────
   function wireEvents(conn, contactId) {
@@ -102,7 +121,13 @@ function createPeerManager({ identity, onMessage, onPeerEvent, onIncomingPeer })
       server = net.createServer((socket) => {
         // Incoming connection — we are the responder
         const rawIp = cleanIp(socket.remoteAddress);
-        const conn = new PeerConnection(socket, 'responder', identity);
+        const conn = new PeerConnection(
+          socket,
+          'responder',
+          identity,
+          activeSecurityConfig,
+          onCryptoEvent
+        );
 
         conn.once('ready', (peerInfo) => {
           const peerPort = peerInfo.listenPort || socket.remotePort;
@@ -139,7 +164,7 @@ function createPeerManager({ identity, onMessage, onPeerEvent, onIncomingPeer })
   }
 
   // ── Initiate an outgoing connection ─────────────────────────────────────────
-  async function connectPeer(ip, port, identity) {
+  async function connectPeer(ip, port, callerIdentity) {
     const cleanAddr = cleanIp(ip);
     const contactId = `${cleanAddr}:${port}`;
     if (peers.has(contactId) && peers.get(contactId).isReady) {
@@ -148,7 +173,13 @@ function createPeerManager({ identity, onMessage, onPeerEvent, onIncomingPeer })
 
     return new Promise((resolve, reject) => {
       const socket = net.createConnection({ port: Number(port), host: cleanAddr });
-      const conn = new PeerConnection(socket, 'initiator', identity);
+      const conn = new PeerConnection(
+        socket,
+        'initiator',
+        callerIdentity || identity,
+        activeSecurityConfig,
+        onCryptoEvent
+      );
 
       wireEvents(conn, contactId);
 
@@ -196,7 +227,22 @@ function createPeerManager({ identity, onMessage, onPeerEvent, onIncomingPeer })
     return peers.has(contactId) && peers.get(contactId).isReady;
   }
 
-  return { listen, relisten, connectPeer, sendMessage, sendTyping, disconnectPeer, isPeerOnline };
+  function getActivePeerCount() {
+    return peers.size;
+  }
+
+  return {
+    listen,
+    relisten,
+    connectPeer,
+    sendMessage,
+    sendTyping,
+    disconnectPeer,
+    isPeerOnline,
+    getActivePeerCount,
+    updateSecurityConfig,
+    getSecurityConfig,
+  };
 }
 
 module.exports = { createPeerManager };

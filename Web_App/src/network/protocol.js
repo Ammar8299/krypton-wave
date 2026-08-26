@@ -6,11 +6,14 @@
  *   [4-byte big-endian uint32 length][UTF-8 JSON payload]
  *
  * Message types:
- *   HANDSHAKE_HELLO       — exchange pubkeys + name
- *   HANDSHAKE_KEM_RESP    — initiator sends KEM ciphertext
- *   HANDSHAKE_AUTH        — Falcon/Ed25519 signature over transcript
+ *   HANDSHAKE_HELLO       — exchange pubkeys + name + securityConfig
+ *   HANDSHAKE_KEM_RESP    — initiator sends ML-KEM-768 ciphertext (if kemEnabled)
+ *   HANDSHAKE_AUTH        — Falcon-512 signature over transcript (if sigEnabled)
  *   HANDSHAKE_COMPLETE    — final ACK, session open
- *   CHAT_MESSAGE          — encrypted payload
+ *   ECDH_EXCHANGE         — X25519 pubkey (when kemEnabled === false)
+ *   CHAT_MESSAGE          — AES-256-GCM encrypted payload (when aesEnabled)
+ *   CHAT_MESSAGE_PLAIN    — plaintext message (when aesEnabled === false)
+ *   ANALYSIS              — Wireshark mode analysis frame (intentionally plaintext)
  *   TYPING_START          — peer started typing
  *   TYPING_STOP           — peer stopped typing
  *   MESSAGE_DELIVERED     — delivery receipt
@@ -18,14 +21,28 @@
  *   PING                  — keepalive
  *   PONG                  — keepalive response
  *   DISCONNECT            — graceful close notification
+ *
+ * Kπyρτόn_wave~ — cryptographic networking experiment
  */
 
 const MSG = {
+  // Handshake
   HANDSHAKE_HELLO:    'HANDSHAKE_HELLO',
   HANDSHAKE_KEM_RESP: 'HANDSHAKE_KEM_RESP',
   HANDSHAKE_AUTH:     'HANDSHAKE_AUTH',
   HANDSHAKE_COMPLETE: 'HANDSHAKE_COMPLETE',
-  CHAT_MESSAGE:       'CHAT_MESSAGE',
+
+  // Key exchange (KEM-OFF mode)
+  ECDH_EXCHANGE:      'ECDH_EXCHANGE',
+
+  // Chat messages
+  CHAT_MESSAGE:       'CHAT_MESSAGE',       // AES encrypted
+  CHAT_MESSAGE_PLAIN: 'CHAT_MESSAGE_PLAIN', // AES disabled — plaintext
+
+  // Wireshark Analysis Mode
+  ANALYSIS:           'ANALYSIS',
+
+  // Control
   TYPING_START:       'TYPING_START',
   TYPING_STOP:        'TYPING_STOP',
   MESSAGE_DELIVERED:  'MESSAGE_DELIVERED',
@@ -54,8 +71,8 @@ function encode(msg) {
  */
 class FrameParser {
   constructor(onMessage) {
-    this._buf     = Buffer.alloc(0);
-    this._onMsg   = onMessage;
+    this._buf   = Buffer.alloc(0);
+    this._onMsg = onMessage;
   }
 
   push(chunk) {
@@ -66,7 +83,7 @@ class FrameParser {
   _drain() {
     while (this._buf.length >= 4) {
       const bodyLen = this._buf.readUInt32BE(0);
-      if (this._buf.length < 4 + bodyLen) break;    // wait for more data
+      if (this._buf.length < 4 + bodyLen) break; // wait for more data
       const body = this._buf.slice(4, 4 + bodyLen);
       this._buf  = this._buf.slice(4 + bodyLen);
       try {

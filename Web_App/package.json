@@ -1,7 +1,7 @@
 {
-  "name": "quantusecure",
+  "name": "krypton-wave",
   "version": "1.0.0",
-  "description": "PQC-Secured P2P LAN Chat — ML-KEM-768 + AES-256-GCM",
+  "description": "Kπyρτόn_wave~ — Post-Quantum Cryptographic Networking Experiment (ML-KEM-768 + Falcon-512 + AES-256-GCM)",
   "main": "main.js",
   "scripts": {
     "dev": "node scripts/dev.js",
@@ -14,7 +14,7 @@
   "dependencies": {
     "@noble/curves": "^1.8.1",
     "@noble/hashes": "^1.7.1",
-    "@noble/post-quantum": "^0.2.1",
+    "@noble/post-quantum": "^0.7.0",
     "gsap": "^3.12.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -31,12 +31,27 @@
     "wait-on": "^8.0.1"
   },
   "build": {
-    "appId": "com.quantusecure.app",
-    "productName": "QuantuSecure",
-    "files": ["dist/**/*", "main.js", "preload.js", "src/crypto/**/*", "src/network/**/*", "src/storage/**/*"],
-    "directories": { "output": "release" },
-    "win": { "target": "nsis" },
-    "linux": { "target": "AppImage" },
-    "mac": { "target": "dmg" }
+    "appId": "com.kryptonwave.app",
+    "productName": "Kπyρτόn_wave~",
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "src/crypto/**/*",
+      "src/network/**/*",
+      "src/storage/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "dmg"
+    }
   }
 }

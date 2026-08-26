@@ -9,6 +9,16 @@ export const useAppStore = create((set, get) => ({
   // ── Identity ──────────────────────────────────────────────────
   identity: null,
 
+  // ── Security Configuration (Kπyρτόn_wave~) ────────────────────
+  securityConfig: {
+    kemEnabled:    true,
+    sigEnabled:    true,
+    aesEnabled:    true,
+    wiresharkMode: false,
+  },
+  configDirty: false, // true when user changed config with active connections
+  cryptoEvents: [],   // last 8 live packet/crypto events
+
   // ── Contacts & Blocklist ──────────────────────────────────────
   contacts: [],            // saved contacts from JSON
   blockedPeers: [],        // blocked IP:port strings
@@ -38,14 +48,15 @@ export const useAppStore = create((set, get) => ({
   init: async () => {
     const api = getApi();
     if (!api) {
-      console.warn('[QuantuSecure] window.quantuSecure not found — run inside Electron for full functionality.');
+      console.warn('[Kπyρτόn_wave~] window.quantuSecure not found — run inside Electron for full functionality.');
       return;
     }
 
     const identity = await api.getIdentity();
     const contacts = (await api.getContacts()) || [];
     const blockedPeers = (await api.getBlockedPeers()) || [];
-    set({ identity, contacts, blockedPeers });
+    const securityConfig = (await api.getSecurityConfig()) || get().securityConfig;
+    set({ identity, contacts, blockedPeers, securityConfig });
 
     // Subscribe to push events from main process
     api.onMessageReceived(({ contactId, message }) => {
@@ -59,13 +70,20 @@ export const useAppStore = create((set, get) => ({
       }
     });
 
+    api.onCryptoEvent((event) => {
+      get().addCryptoEvent(event);
+    });
+
     api.onPeerEvent(({ type, contactId, data }) => {
       const { peerStatus, ephemeralPeers, contacts, blockedPeers } = get();
       if (blockedPeers.includes(contactId)) return;
 
       switch (type) {
         case 'connected':
-          set({ peerStatus: { ...peerStatus, [contactId]: { online: true, typing: false } } });
+          set({
+            peerStatus: { ...peerStatus, [contactId]: { online: true, typing: false } },
+            configDirty: false,
+          });
           // If not a saved contact, add to ephemeral list with all crypto keys
           if (!contacts.find(c => `${c.ip}:${c.port}` === contactId)) {
             const existingIdx = ephemeralPeers.findIndex(p => p.id === contactId);
@@ -100,6 +118,27 @@ export const useAppStore = create((set, get) => ({
           break;
       }
     });
+  },
+
+  setSecurityConfig: async (partialConfig) => {
+    const updated = { ...get().securityConfig, ...partialConfig };
+    set({ securityConfig: updated });
+
+    const api = getApi();
+    if (api?.setSecurityConfig) {
+      const res = await api.setSecurityConfig(updated);
+      if (res?.activePeers > 0) {
+        set({ configDirty: true });
+      }
+    }
+  },
+
+  clearConfigDirty: () => set({ configDirty: false }),
+
+  addCryptoEvent: (event) => {
+    set(state => ({
+      cryptoEvents: [event, ...state.cryptoEvents].slice(0, 8),
+    }));
   },
 
   setActiveContact: async (contactId) => {

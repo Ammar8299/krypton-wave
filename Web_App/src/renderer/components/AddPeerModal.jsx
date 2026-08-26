@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import { useAppStore } from '../store/useAppStore';
 import { CloseIcon, AlertCircleIcon } from './Icons';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 
 // Handshake states
 const S = { IDLE: 'idle', CONNECTING: 'connecting', SUCCESS: 'success', ERROR: 'error' };
@@ -82,7 +82,7 @@ export default function AddPeerModal() {
         <div className="modal-header">
           <div>
             <div className="modal-title">ADD PEER</div>
-            <div className="modal-subtitle">Connect via IP:Port · ML-KEM-768 Handshake</div>
+            <div className="modal-subtitle">Connect via IP:Port · Post-Quantum Handshake</div>
           </div>
           <button className="modal-close" onClick={close}><CloseIcon size={14} /></button>
         </div>
@@ -122,13 +122,13 @@ export default function AddPeerModal() {
           <>
             <div className="status-row connecting">
               <span className="spinner" />
-              CONNECTING… ML-KEM-768 KEY EXCHANGE IN PROGRESS
+              CONNECTING… POST-QUANTUM HANDSHAKE IN PROGRESS
             </div>
             <div className="progress-bar-wrap">
               <div className="progress-bar-fill" />
             </div>
             <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 10 }}>
-              Establishing quantum-secure channel to {address}
+              Establishing secure channel to {address}
             </div>
           </>
         )}

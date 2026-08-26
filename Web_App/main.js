@@ -7,6 +7,12 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // ── Backend modules (loaded after app ready) ─────────────────────────────────
 let peerManager, identity, contacts, messages;
+let securityConfig = {
+  kemEnabled:    true,
+  sigEnabled:    true,
+  aesEnabled:    true,
+  wiresharkMode: false,
+};
 
 // ── Utility: get local LAN IP ─────────────────────────────────────────────────
 function getLocalIP() {
@@ -53,6 +59,8 @@ function createWindow() {
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   // Lazy-load backend after app is ready (so app.getPath works)
+  const { initPQC }              = require('./src/crypto/pqc');
+  await initPQC();
   const { loadOrCreateIdentity } = require('./src/crypto/identity');
   const { createPeerManager }    = require('./src/network/server');
   const contactsStore            = require('./src/storage/contacts');
@@ -61,13 +69,14 @@ app.whenReady().then(async () => {
   contacts = contactsStore;
   messages = messagesStore;
 
-  // Load or create long-term identity keypair
+  // Load or create long-term identity keypair (Falcon-512 + ML-KEM-768)
   identity = await loadOrCreateIdentity();
 
   // Start TCP server — auto-increments if configured port is busy
   const listenPort = identity.listenPort || 5050;
   peerManager = createPeerManager({
     identity,
+    securityConfig,
     onMessage(contactId, msg) {
       // Persist and push to renderer
       messages.addMessage({ ...msg, contactId });
@@ -78,6 +87,9 @@ app.whenReady().then(async () => {
     },
     onIncomingPeer(peerInfo) {
       mainWindow?.webContents.send('peer-event', { type: 'incoming', contactId: peerInfo.id, data: peerInfo });
+    },
+    onCryptoEvent(eventData) {
+      mainWindow?.webContents.send('crypto-event', eventData);
     },
   });
 
@@ -129,6 +141,18 @@ function registerIPC() {
     return win ? win.isMaximized() : false;
   });
 
+  // Security Configuration
+  ipcMain.handle('get-security-config', () => {
+    return { ...securityConfig };
+  });
+
+  ipcMain.handle('set-security-config', (_, newConfig) => {
+    securityConfig = { ...securityConfig, ...newConfig };
+    peerManager?.updateSecurityConfig(securityConfig);
+    const activePeers = peerManager ? peerManager.getActivePeerCount() : 0;
+    return { ok: true, activePeers, config: securityConfig };
+  });
+
   // Identity
   ipcMain.handle('get-identity', () => ({
     ip: '127.0.0.1',
@@ -136,6 +160,7 @@ function registerIPC() {
     port: identity.listenPort,
     fingerprint: identity.fingerprint,
     name: identity.name,
+    sigAlgorithm: identity.sigAlgorithm || 'Falcon-512',
   }));
 
   ipcMain.handle('set-identity-name', (_, name) => {

@@ -3,18 +3,55 @@
  * pqc.js — Post-Quantum Cryptography primitives
  *
  * KEM  : ML-KEM-768 (FIPS 203) via @noble/post-quantum
- * Sign : Ed25519 via @noble/curves  (drop-in stand-in; swap for Falcon-512
- *        via liboqs-js when native build is available)
+ * Sign : Falcon-512 (FIPS 206) via @noble/post-quantum — REAL post-quantum signing
+ * ECDH : X25519/P-256 via Node.js built-in — fallback when KEM is OFF
+ *
+ * Loaded dynamically via ESM import() for compatibility with Electron's CJS environment.
  *
  * All keys and ciphertexts are stored/transmitted as Base64 strings.
+ *
+ * Kπyρτόn_wave~ — cryptographic networking experiment
  */
 
-const { ml_kem768 }       = require('@noble/post-quantum/ml-kem');
-const { ed25519 }         = require('@noble/curves/ed25519');
-const { randomBytes }     = require('crypto');
+const { randomBytes } = require('crypto');
+const crypto          = require('crypto');
+
+let ml_kem768 = null;
+let falcon512 = null;
+
+// Immediately begin dynamic ESM import at module load
+const initPromise = (async () => {
+  try {
+    const [kemMod, falconMod] = await Promise.all([
+      import('@noble/post-quantum/ml-kem.js'),
+      import('@noble/post-quantum/falcon.js'),
+    ]);
+    ml_kem768 = kemMod.ml_kem768;
+    falcon512 = falconMod.falcon512;
+  } catch (err) {
+    console.error('[pqc] Error loading post-quantum ES modules:', err);
+  }
+})();
+
+/**
+ * Ensures post-quantum modules are fully loaded before cryptographic operations.
+ * Must be awaited at application startup (e.g. in app.whenReady or loadOrCreateIdentity).
+ */
+async function initPQC() {
+  await initPromise;
+  if (!ml_kem768 || !falcon512) {
+    throw new Error('[pqc] Post-quantum modules failed to initialize.');
+  }
+}
+
+function ensureReady() {
+  if (!ml_kem768 || !falcon512) {
+    throw new Error('[pqc] ML-KEM-768 / Falcon-512 not yet initialized. Call and await initPQC() first.');
+  }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const toB64  = (buf) => Buffer.from(buf).toString('base64');
+const toB64   = (buf) => Buffer.from(buf).toString('base64');
 const fromB64 = (str) => Uint8Array.from(Buffer.from(str, 'base64'));
 
 // ── ML-KEM-768 ────────────────────────────────────────────────────────────────
@@ -23,6 +60,7 @@ const fromB64 = (str) => Uint8Array.from(Buffer.from(str, 'base64'));
  * @returns {{ kemPublicKey: string, kemSecretKey: string }} Base64-encoded keys
  */
 function kemKeyGen() {
+  ensureReady();
   const keys = ml_kem768.keygen();
   return {
     kemPublicKey: toB64(keys.publicKey),
@@ -32,70 +70,85 @@ function kemKeyGen() {
 
 /**
  * Encapsulate: produce a ciphertext and shared secret using the peer's KEM public key.
- * Called by the initiator.
+ * Called by the initiator when ML-KEM is enabled.
  * @param {string} peerKemPublicKeyB64
  * @returns {{ ciphertext: string, sharedSecret: Uint8Array }}
  */
 function kemEncapsulate(peerKemPublicKeyB64) {
+  ensureReady();
   const pubKey = fromB64(peerKemPublicKeyB64);
   const { cipherText, sharedSecret } = ml_kem768.encapsulate(pubKey);
   return {
     ciphertext: toB64(cipherText),
-    sharedSecret,               // raw Uint8Array — feed directly into HKDF
+    sharedSecret,               // raw 32-byte Uint8Array — direct AES-256 session key
   };
 }
 
 /**
  * Decapsulate: recover the shared secret using our KEM secret key.
- * Called by the responder.
+ * Called by the responder when ML-KEM is enabled.
  * @param {string} kemSecretKeyB64
  * @param {string} ciphertextB64
  * @returns {Uint8Array} sharedSecret
  */
 function kemDecapsulate(kemSecretKeyB64, ciphertextB64) {
-  const secretKey   = fromB64(kemSecretKeyB64);
-  const cipherText  = fromB64(ciphertextB64);
+  ensureReady();
+  const secretKey  = fromB64(kemSecretKeyB64);
+  const cipherText = fromB64(ciphertextB64);
   return ml_kem768.decapsulate(cipherText, secretKey);
 }
 
-// ── Ed25519 Signatures (Falcon-512 stand-in) ──────────────────────────────────
+// ── Falcon-512 Signatures (FIPS 206) ─────────────────────────────────────────
 /**
- * Generate a fresh signing keypair.
+ * Generate a fresh Falcon-512 signing keypair.
+ * publicKey: 897 bytes, secretKey: 1281 bytes
  * @returns {{ sigPublicKey: string, sigSecretKey: string }}
  */
 function sigKeyGen() {
-  const secretKey = ed25519.utils.randomPrivateKey();
-  const publicKey = ed25519.getPublicKey(secretKey);
+  ensureReady();
+  const keys = falcon512.keygen();
   return {
-    sigPublicKey: toB64(publicKey),
-    sigSecretKey: toB64(secretKey),
+    sigPublicKey: toB64(keys.publicKey),
+    sigSecretKey: toB64(keys.secretKey),
   };
 }
 
 /**
- * Sign arbitrary data with our signing secret key.
+ * Sign arbitrary data with our Falcon-512 signing secret key.
+ * Uses the "attached" mode: signature is prepended to the message.
  * @param {string} sigSecretKeyB64
  * @param {Uint8Array|Buffer} data
- * @returns {string} Base64-encoded signature
+ * @returns {string} Base64-encoded sealed payload (sig + msg)
  */
 function sign(sigSecretKeyB64, data) {
+  ensureReady();
   const secretKey = fromB64(sigSecretKeyB64);
-  const sig = ed25519.sign(data instanceof Uint8Array ? data : new Uint8Array(data), secretKey);
-  return toB64(sig);
+  const msg = data instanceof Uint8Array ? data : new Uint8Array(data);
+  const sealed = falcon512.attached.seal(msg, secretKey);
+  return toB64(sealed);
 }
 
 /**
- * Verify a signature against a public key.
+ * Verify a Falcon-512 signature.
  * @param {string} sigPublicKeyB64
- * @param {Uint8Array|Buffer} data
- * @param {string} signatureB64
+ * @param {Uint8Array|Buffer} originalData  — the original message that was signed
+ * @param {string} sealedB64               — the sealed (sig+msg) from sign()
  * @returns {boolean}
  */
-function verify(sigPublicKeyB64, data, signatureB64) {
+function verify(sigPublicKeyB64, originalData, sealedB64) {
+  ensureReady();
   try {
     const publicKey = fromB64(sigPublicKeyB64);
-    const sig       = fromB64(signatureB64);
-    return ed25519.verify(sig, data instanceof Uint8Array ? data : new Uint8Array(data), publicKey);
+    const sealed    = fromB64(sealedB64);
+    const recovered = falcon512.attached.open(sealed, publicKey);
+    if (!recovered) return false;
+    // Verify recovered message matches original
+    const orig = originalData instanceof Uint8Array ? originalData : new Uint8Array(originalData);
+    if (recovered.length !== orig.length) return false;
+    for (let i = 0; i < orig.length; i++) {
+      if (recovered[i] !== orig[i]) return false;
+    }
+    return true;
   } catch {
     return false;
   }
@@ -110,7 +163,35 @@ function buildTranscript(helloA, helloB, ciphertext) {
   return Buffer.from(str);
 }
 
+// ── X25519 / ECDH (KEM-OFF mode fallback) ────────────────────────────────────
+/**
+ * Generate an ephemeral ECDH keypair for use when ML-KEM is disabled.
+ * Classical security only — not quantum-safe. For experiment/education.
+ * @returns {{ ecdhObj: ECDH, publicKeyB64: string }}
+ */
+function ecdhKeyGen() {
+  const ecdh = crypto.createECDH('prime256v1');
+  const publicKey = ecdh.generateKeys();
+  return {
+    ecdhObj:      ecdh,
+    publicKeyB64: toB64(publicKey),
+  };
+}
+
+/**
+ * Compute ECDH shared secret from peer's public key.
+ * @param {ECDH} ecdhObj         — our local ECDH object (from ecdhKeyGen)
+ * @param {string} peerPubKeyB64 — peer's public key (65 bytes, uncompressed)
+ * @returns {Uint8Array} sharedSecret
+ */
+function ecdhComputeSecret(ecdhObj, peerPubKeyB64) {
+  const peerPubKey = Buffer.from(fromB64(peerPubKeyB64));
+  const secret = ecdhObj.computeSecret(peerPubKey);
+  return new Uint8Array(secret);
+}
+
 module.exports = {
+  initPQC,
   kemKeyGen,
   kemEncapsulate,
   kemDecapsulate,
@@ -118,6 +199,8 @@ module.exports = {
   sign,
   verify,
   buildTranscript,
+  ecdhKeyGen,
+  ecdhComputeSecret,
   toB64,
   fromB64,
 };

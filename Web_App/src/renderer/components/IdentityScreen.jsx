@@ -4,13 +4,6 @@ import { CopyIcon, ShieldIcon } from './Icons';
 
 const getApi = () => window.quantuSecure;
 
-const CRYPTO_STACK = [
-  { name: 'ML-KEM-768',   role: 'Key Exchange (FIPS 203)' },
-  { name: 'Ed25519*',     role: 'Authentication / Identity Signing' },
-  { name: 'AES-256-GCM',  role: 'Payload Encryption' },
-  { name: 'HKDF-SHA256',  role: 'Session Key Derivation' },
-];
-
 function useCopy(text) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -22,27 +15,61 @@ function useCopy(text) {
   return [copied, copy];
 }
 
+function getStatusBadge(config) {
+  const { kemEnabled, sigEnabled, aesEnabled, wiresharkMode } = config || {};
+  if (!kemEnabled && !sigEnabled && !aesEnabled) {
+    return {
+      text: '⚠️ NO MESSAGE ENCRYPTION — PLAINTEXT MODE',
+      className: 'status-badge--danger',
+    };
+  }
+  if (kemEnabled && sigEnabled && aesEnabled) {
+    return {
+      text: '🔐 POST-QUANTUM KEY ESTABLISHMENT + AUTHENTICATED ENCRYPTION',
+      className: 'status-badge--secure',
+    };
+  }
+  const parts = [];
+  if (kemEnabled) parts.push('ML-KEM');
+  if (sigEnabled) parts.push('Falcon-512');
+  if (aesEnabled) parts.push('AES-GCM');
+  return {
+    text: `🔒 ACTIVE LAYERS: ${parts.join(' + ')}`,
+    className: 'status-badge--warn',
+  };
+}
+
 export default function IdentityScreen() {
-  const { identity, updateIdentityName } = useAppStore();
-  const [editingName, setEditingName] = useState(false);
-  const [nameVal, setNameVal]         = useState(identity?.name || '');
-  const [editingPort, setEditingPort] = useState(false);
-  const [portVal, setPortVal]         = useState(identity?.listenPort || 5050);
+  const {
+    identity,
+    updateIdentityName,
+    securityConfig,
+    setSecurityConfig,
+    configDirty,
+    cryptoEvents,
+  } = useAppStore();
+
+  const [editingName, setEditingName]   = useState(false);
+  const [nameVal, setNameVal]           = useState(identity?.name || '');
+  const [editingPort, setEditingPort]   = useState(false);
+  const [portVal, setPortVal]           = useState(identity?.listenPort || 5050);
   const [clearConfirm, setClearConfirm] = useState(false);
 
   const nodeAddress = identity ? `${identity.ip}:${identity.port}` : '…';
-  const [copiedAddr, copyAddr]         = useCopy(nodeAddress);
-  const [copiedFP,   copyFP]           = useCopy(identity?.fingerprint || '');
+  const [copiedAddr, copyAddr] = useCopy(nodeAddress);
+  const [copiedFP,   copyFP]   = useCopy(identity?.fingerprint || '');
 
-  if (!identity) return (
-    <div className="identity-screen" style={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <ShieldIcon size={40} className="text-green" style={{ opacity: 0.3 }} />
-      <div className="font-mono" style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: 11 }}>
-        IDENTITY NOT AVAILABLE<br />
-        <span style={{ color: 'var(--green-dim)' }}>Run the app via Electron (<code style={{ color: 'var(--green-primary)' }}>npm run dev</code>)</span>
+  if (!identity) {
+    return (
+      <div className="identity-screen" style={{ alignItems: 'center', justifyContent: 'center', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <ShieldIcon size={40} className="text-green" style={{ opacity: 0.3 }} />
+        <div className="font-mono" style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: 11 }}>
+          IDENTITY NOT AVAILABLE<br />
+          <span style={{ color: 'var(--green-dim)' }}>Run via Electron (<code style={{ color: 'var(--green-primary)' }}>npm run dev</code>)</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   const handleSaveName = async () => {
     if (nameVal.trim()) await updateIdentityName(nameVal.trim());
@@ -54,8 +81,11 @@ export default function IdentityScreen() {
     setClearConfirm(false);
   };
 
+  const statusBadge = getStatusBadge(securityConfig);
+
   return (
     <div className="identity-screen">
+      {/* Header */}
       <div
         className="identity-screen-header"
         style={{ WebkitAppRegion: 'drag', userSelect: 'none' }}
@@ -64,13 +94,13 @@ export default function IdentityScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, WebkitAppRegion: 'no-drag' }}>
           <ShieldIcon size={22} style={{ color: 'var(--green-primary)' }} className="text-green" />
           <div>
-            <div className="identity-screen-title">IDENTITY &amp; SECURITY</div>
-            <div className="identity-screen-sub font-mono">NODE CONFIGURATION · KEY MANAGEMENT</div>
+            <div className="identity-screen-title font-mono">Kπyρτόn_wave~</div>
+            <div className="identity-screen-sub font-mono">NODE CONFIGURATION · POST-QUANTUM PROTOCOL SUITE</div>
           </div>
         </div>
       </div>
 
-      {/* My Identity */}
+      {/* ── 1. My Identity ────────────────────────────────────────── */}
       <div className="info-card">
         <div className="info-card-title">MY IDENTITY</div>
 
@@ -108,7 +138,7 @@ export default function IdentityScreen() {
           </div>
           {identity.lanIp && identity.lanIp !== '127.0.0.1' && (
             <div style={{ marginTop: 8 }}>
-              <div className="peer-info-label">LAN ADDRESS (OTHER DEVICES ON WIFI)</div>
+              <div className="peer-info-label">LAN ADDRESS (OTHER DEVICES ON NETWORK)</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                 <span className="font-mono" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                   {identity.lanIp}:{identity.port}
@@ -124,12 +154,12 @@ export default function IdentityScreen() {
             </div>
           )}
           <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-            Use 127.0.0.1 when testing between two instances on this same PC
+            Use 127.0.0.1 when testing between two instances on this same device
           </div>
         </div>
 
         <div>
-          <div className="peer-info-label">SIGNING KEY FINGERPRINT</div>
+          <div className="peer-info-label">FALCON-512 SIGNING FINGERPRINT (FIPS 206)</div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 4 }}>
             <div className="fingerprint-text" style={{ flex: 1 }}>
               {identity.fingerprint || '—'}
@@ -140,34 +170,174 @@ export default function IdentityScreen() {
             </button>
           </div>
           <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-            Verify this fingerprint out-of-band to confirm your identity has not changed
+            Deterministic SHA-256 fingerprint of your Falcon-512 public key (897 bytes)
           </div>
         </div>
       </div>
 
-      {/* Crypto Stack */}
+      {/* ── 2. Wireshark Analysis Mode (Above Cryptographic Stack) ── */}
+      <div className="info-card wireshark-card">
+        <div className="info-card-title" style={{ color: 'var(--color-wireshark)' }}>
+          WIRESHARK ANALYSIS MODE
+        </div>
+        <div className="crypto-toggle-row">
+          <div className="crypto-toggle-info">
+            <div className="crypto-toggle-name" style={{ color: 'var(--color-wireshark)' }}>
+              WIRESHARK MODE
+            </div>
+            <div className="crypto-toggle-desc font-mono">
+              Appends readable plaintext ANALYSIS frames to TCP stream for Wireshark inspection
+            </div>
+          </div>
+          <button
+            id="toggle-wireshark-btn"
+            className={`toggle-btn ${securityConfig.wiresharkMode ? 'active-wireshark' : ''}`}
+            onClick={() => setSecurityConfig({ wiresharkMode: !securityConfig.wiresharkMode })}
+          >
+            <span className="toggle-indicator" />
+            <span className="font-mono">{securityConfig.wiresharkMode ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+
+        {securityConfig.wiresharkMode ? (
+          <div className="wireshark-warning-pill font-mono">
+            ⚠️ WIRESHARK ANALYSIS MODE ACTIVE — Debug metadata is intentionally visible on the network.
+          </div>
+        ) : (
+          <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 8 }}>
+            Normal mode: Only standard framed payloads are transmitted over TCP.
+          </div>
+        )}
+      </div>
+
+      {/* ── 3. Cryptographic Stack with Toggles ──────────────────── */}
       <div className="info-card">
         <div className="info-card-title">CRYPTOGRAPHIC STACK</div>
-        {CRYPTO_STACK.map(row => (
-          <div className="crypto-stack-row" key={row.name}>
-            <div>
-              <div className="crypto-name">{row.name}</div>
-              <div className="crypto-role">{row.role}</div>
+
+        {/* ML-KEM-768 */}
+        <div className="crypto-toggle-row">
+          <div className="crypto-toggle-info">
+            <div className="crypto-toggle-name" style={{ color: 'var(--color-kem)' }}>
+              ML-KEM-768
             </div>
-            <span className="active-badge">ACTIVE</span>
+            <div className="crypto-toggle-desc font-mono">
+              Key Exchange (FIPS 203) — Post-Quantum lattice-based KEM
+            </div>
           </div>
-        ))}
-        <div className="font-mono" style={{ fontSize: 9.5, color: 'var(--text-muted)', marginTop: 10 }}>
-          * Ed25519 used as authentication stand-in. Swap for Falcon-512 via liboqs for full FIPS 206 compliance.
+          <button
+            id="toggle-kem-btn"
+            className={`toggle-btn ${securityConfig.kemEnabled ? 'active-kem' : ''}`}
+            onClick={() => setSecurityConfig({ kemEnabled: !securityConfig.kemEnabled })}
+          >
+            <span className="toggle-indicator" />
+            <span className="font-mono">{securityConfig.kemEnabled ? 'ON' : 'OFF'}</span>
+          </button>
         </div>
+
+        {/* Falcon-512 */}
+        <div className="crypto-toggle-row">
+          <div className="crypto-toggle-info">
+            <div className="crypto-toggle-name" style={{ color: 'var(--color-sig)' }}>
+              Falcon-512
+            </div>
+            <div className="crypto-toggle-desc font-mono">
+              Authentication &amp; Identity Signing (FIPS 206) — Post-Quantum lattice signatures
+            </div>
+          </div>
+          <button
+            id="toggle-sig-btn"
+            className={`toggle-btn ${securityConfig.sigEnabled ? 'active-sig' : ''}`}
+            onClick={() => setSecurityConfig({ sigEnabled: !securityConfig.sigEnabled })}
+          >
+            <span className="toggle-indicator" />
+            <span className="font-mono">{securityConfig.sigEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+
+        {/* AES-256-GCM */}
+        <div className="crypto-toggle-row">
+          <div className="crypto-toggle-info">
+            <div className="crypto-toggle-name" style={{ color: 'var(--color-aes)' }}>
+              AES-256-GCM
+            </div>
+            <div className="crypto-toggle-desc font-mono">
+              Message Payload Encryption — AEAD with 96-bit IV &amp; 128-bit tag
+            </div>
+          </div>
+          <button
+            id="toggle-aes-btn"
+            className={`toggle-btn ${securityConfig.aesEnabled ? 'active-aes' : ''}`}
+            onClick={() => setSecurityConfig({ aesEnabled: !securityConfig.aesEnabled })}
+          >
+            <span className="toggle-indicator" />
+            <span className="font-mono">{securityConfig.aesEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+
+        {/* Live status string */}
+        <div className={`status-summary-bar font-mono ${statusBadge.className}`}>
+          {statusBadge.text}
+        </div>
+
+        {/* Dirty configuration warning */}
+        {configDirty && (
+          <div className="reconnect-alert font-mono">
+            ⚡ Security configuration changed — reconnect or perform a new handshake to apply.
+          </div>
+        )}
       </div>
 
-      {/* Settings */}
+      {/* ── 4. Live Crypto Telemetry ─────────────────────────────── */}
+      <div className="info-card">
+        <div className="info-card-title">LIVE CRYPTO TELEMETRY (REAL PACKETS)</div>
+        <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', marginBottom: 8 }}>
+          Real event stream from sent &amp; received TCP messages. No simulated data.
+        </div>
+
+        {cryptoEvents.length === 0 ? (
+          <div className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', padding: '12px 0', textAlign: 'center' }}>
+            Awaiting network traffic — send a message to observe live cryptographic telemetry.
+          </div>
+        ) : (
+          <div className="telemetry-table">
+            <div className="telemetry-header font-mono">
+              <span>TIME</span>
+              <span>DIR</span>
+              <span>ALGORITHM</span>
+              <span>PAYLOAD SIZE</span>
+              <span>IV / TAG</span>
+            </div>
+            {cryptoEvents.map((evt) => {
+              const timeStr = new Date(evt.timestamp).toLocaleTimeString();
+              const isEnc = evt.encrypted;
+              const ivSnippet = evt.iv ? `${Buffer.from(evt.iv, 'base64').toString('hex').slice(0, 8)}…` : '—';
+              const tagSnippet = evt.tag ? `${Buffer.from(evt.tag, 'base64').toString('hex').slice(0, 8)}…` : '—';
+              return (
+                <div key={`${evt.id}-${evt.timestamp}`} className="telemetry-row font-mono">
+                  <span style={{ color: 'var(--text-muted)' }}>{timeStr}</span>
+                  <span className={evt.direction === 'sent' ? 'telemetry-sent' : 'telemetry-recv'}>
+                    {evt.direction.toUpperCase()}
+                  </span>
+                  <span style={{ color: isEnc ? 'var(--color-aes)' : 'var(--red-alert)' }}>
+                    {evt.algo}
+                  </span>
+                  <span>{evt.byteSize} B</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    {isEnc ? `iv:${ivSnippet} tag:${tagSnippet}` : 'RAW PLAINTEXT'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── 5. Settings ─────────────────────────────────────────── */}
       <div className="info-card">
         <div className="info-card-title">SETTINGS</div>
 
         <div className="settings-row">
-          <span className="settings-key">Listen Port</span>
+          <span className="settings-key font-mono">Listen Port</span>
           {editingPort ? (
             <div style={{ display: 'flex', gap: 8 }}>
               <input
@@ -182,27 +352,27 @@ export default function IdentityScreen() {
                 className="btn btn-primary"
                 style={{ width: 'auto', padding: '0 12px', height: 34 }}
                 onClick={async () => {
-                await getApi()?.setListenPort(parseInt(portVal, 10));
+                  await getApi()?.setListenPort(parseInt(portVal, 10));
                   setEditingPort(false);
                 }}
               >Apply</button>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span className="settings-val">{identity.port}</span>
+              <span className="settings-val font-mono">{identity.port}</span>
               <button id="edit-port-btn" className="copy-btn" onClick={() => setEditingPort(true)}>EDIT</button>
             </div>
           )}
         </div>
 
         <div className="settings-row">
-          <span className="settings-key">Version</span>
-          <span className="settings-val font-mono">QuantuSecure v1.0.0</span>
+          <span className="settings-key font-mono">Project</span>
+          <span className="settings-val font-mono" style={{ color: 'var(--green-bright)' }}>Kπyρτόn_wave~ v1.0.0</span>
         </div>
 
         <div style={{ marginTop: 16 }}>
           {!clearConfirm ? (
-            <button id="clear-data-btn" className="btn btn-danger" onClick={() => setClearConfirm(true)}>
+            <button id="clear-data-btn" className="btn btn-danger font-mono" onClick={() => setClearConfirm(true)}>
               CLEAR ALL DATA
             </button>
           ) : (
@@ -211,8 +381,8 @@ export default function IdentityScreen() {
                 ⚠ This will delete all contacts and message history. This cannot be undone.
               </div>
               <div className="btn-row">
-                <button id="confirm-clear-btn" className="btn btn-danger" onClick={handleClearData}>CONFIRM DELETE</button>
-                <button className="btn btn-ghost" onClick={() => setClearConfirm(false)}>Cancel</button>
+                <button id="confirm-clear-btn" className="btn btn-danger font-mono" onClick={handleClearData}>CONFIRM DELETE</button>
+                <button className="btn btn-ghost font-mono" onClick={() => setClearConfirm(false)}>Cancel</button>
               </div>
             </div>
           )}

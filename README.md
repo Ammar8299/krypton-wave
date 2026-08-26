@@ -1,35 +1,34 @@
 <div align="center">
 
-# 🛡️⚡ QuantuSecure (Krypton)
-### *Post-Quantum Cryptographic P2P Messenger & LoRa Gateway*
+# 🛡️⚡ Kπyρτόn_wave~ (κρυπτόν_wave~)
+### *Post-Quantum Cryptographic Networking Experiment & Real-Time Traffic Laboratory*
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=700&size=24&duration=3000&pause=1000&color=00FF66&center=true&vCenter=true&width=650&lines=Quantum-Resilient+Peer-to-Peer+Messenger;NIST+FIPS+203+ML-KEM-768+Key+Exchange;Zero-Server+Decentralized+LAN+%26+LoRa+P2P;End-to-End+AES-256-GCM+AEAD+Encryption)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=700&size=24&duration=3000&pause=1000&color=00FF66&center=true&vCenter=true&width=700&lines=Kπyρτόn_wave~+PQC+Networking+Experiment;NIST+FIPS+203+ML-KEM-768+Key+Exchange;NIST+FIPS+206+Falcon-512+Digital+Signatures;Direct+AES-256-GCM+Encryption+(Zero-HKDF);Live+Wireshark+Packet+Inspection+Mode)](https://git.io/typing-svg)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Security-NIST_FIPS_203_(ML--KEM--768)-00C853?style=for-the-badge&logo=shield&logoColor=white" alt="ML-KEM-768" />
-  <img src="https://img.shields.io/badge/Encryption-AES--256--GCM-black?style=for-the-badge&logo=lock&logoColor=00E676" alt="AES-256-GCM" />
-  <img src="https://img.shields.io/badge/Auth-Ed25519_%2F_Falcon--512-1a1a1a?style=for-the-badge&logo=auth0&logoColor=00C853" alt="Auth" />
-  <img src="https://img.shields.io/badge/Architecture-Direct_P2P_TCP_%26_LoRa-004D40?style=for-the-badge&logo=target&logoColor=white" alt="P2P" />
+  <img src="https://img.shields.io/badge/Key_Exchange-NIST_FIPS_203_(ML--KEM--768)-00BFFF?style=for-the-badge&logo=shield&logoColor=white" alt="ML-KEM-768" />
+  <img src="https://img.shields.io/badge/Signatures-NIST_FIPS_206_(Falcon--512)-FF8C00?style=for-the-badge&logo=auth0&logoColor=white" alt="Falcon-512" />
+  <img src="https://img.shields.io/badge/Encryption-AES--256--GCM-FF3131?style=for-the-badge&logo=lock&logoColor=white" alt="AES-256-GCM" />
+  <img src="https://img.shields.io/badge/Analysis-Wireshark_Mode-A855F7?style=for-the-badge&logo=wireshark&logoColor=white" alt="Wireshark Mode" />
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Electron-33.2.1-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
   <img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/Vite-6.0.5-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node" />
+  <img src="https://img.shields.io/badge/@noble/post--quantum-0.7.0-00C853?style=flat-square&logo=npm&logoColor=white" alt="Noble" />
   <img src="https://img.shields.io/badge/ESP32--S3-DevKitC--1-E7352C?style=flat-square&logo=espressif&logoColor=white" alt="ESP32" />
   <img src="https://img.shields.io/badge/LoRa-433MHz_SX1262-FF6F00?style=flat-square&logo=satellite&logoColor=white" alt="LoRa" />
-  <img src="https://img.shields.io/badge/Storage-Zero--SQL_Flat_JSON-00C853?style=flat-square&logo=json&logoColor=white" alt="JSON" />
 </p>
 
 <p align="center">
-  <a href="#-key-features">Features</a> •
-  <a href="#-hardware-schematic--circuit-design">Hardware & Circuit</a> •
+  <a href="#-whats-new-in-kπyρτόn_wave">What's New</a> •
   <a href="#-cryptographic-stack--specifications">Cryptographic Stack</a> •
+  <a href="#-the-4-interactive-protocol-toggles">Interactive Toggles</a> •
   <a href="#-5-step-pqc-handshake-protocol">Handshake Protocol</a> •
-  <a href="#-installation--setup">Installation</a> •
-  <a href="#-running-the-application">Running</a> •
-  <a href="#-project-structure">Structure</a>
+  <a href="#-real-wireshark-packet-capture-experiment">Wireshark Guide</a> •
+  <a href="#-hardware-schematic--circuit-design">Hardware & Circuit</a> •
+  <a href="#-running-the-application">Running</a>
 </p>
 
 <img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="line" width="100%" />
@@ -38,11 +37,37 @@
 
 ---
 
+## 🚀 What's New in Kπyρτόn_wave~ (Latest Update)
+
+> [!IMPORTANT]
+> The project has evolved from a basic encrypted messenger into **`Kπyρτόn_wave~`**—a fully functional **post-quantum cryptographic networking experiment**. Every toggle directly alters the raw TCP socket packets captured in the standalone **Wireshark** application.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             WHAT CHANGED IN THIS UPDATE                          │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│  1. NIST FIPS 206 Falcon-512  │ Upgraded from Ed25519 to genuine post-quantum    │
+│                               │ Fast-Fourier lattice signatures (~660B).         │
+│  2. Zero-HKDF Architecture    │ Removed HKDF-SHA256 completely; ML-KEM-768       │
+│                               │ 32-byte shared secret maps directly to AES-256.  │
+│  3. 4 Real Protocol Toggles   │ ML-KEM-768, Falcon-512, AES-256, Wireshark Mode  │
+│                               │ with individual neon-glowing control switches.   │
+│  4. Wireshark Analysis Frames │ Emits readable companion metadata frames over    │
+│                               │ TCP for educational inspection in Wireshark.     │
+│  5. Live Crypto Telemetry     │ Real-time log table showing raw packet size,     │
+│                               │ IV/tag hex snippets, direction, and timestamps.  │
+│  6. Electron ESM Bridge       │ Dynamic import loader solving ERR_REQUIRE_ESM.   │
+│  7. Auto-Migration            │ Backs up legacy keys and regenerates Falcon-512. │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🌟 Executive Summary
 
-**QuantuSecure (Krypton)** is a decentralized, zero-server desktop messenger and hardware gateway designed for immunity against **"Harvest Now, Decrypt Later" (HNDL)** quantum computing threats.
+**`Kπyρτόn_wave~`** is a decentralized, zero-server desktop messenger and hardware gateway engineered for absolute immunity against **"Harvest Now, Decrypt Later" (HNDL)** quantum computing threats.
 
-Traditional messaging platforms rely on classical asymmetric cryptography (RSA, ECDH) to exchange session keys. These schemes are vulnerable to Shor's algorithm running on future Cryptanalytically Relevant Quantum Computers (CRQCs). QuantuSecure resolves this vulnerability by combining **NIST FIPS 203 ML-KEM-768** post-quantum key encapsulation with **AES-256-GCM** authenticated payload encryption over direct peer-to-peer TCP networks and 433MHz LoRa physical links.
+Traditional messaging systems rely on classical asymmetric cryptography (RSA, ECDH) to exchange session keys. These schemes are mathematically vulnerable to Shor's algorithm running on future Cryptanalytically Relevant Quantum Computers (CRQCs). `Kπyρτόn_wave~` eliminates this vulnerability by pairing **NIST FIPS 203 ML-KEM-768** post-quantum key encapsulation with **NIST FIPS 206 Falcon-512** digital signatures and **AES-256-GCM** authenticated payload encryption over direct peer-to-peer TCP networks and 433MHz LoRa physical links.
 
 ```
        ┌─────────────────────────────────────────────────────────────┐
@@ -61,22 +86,165 @@ Traditional messaging platforms rely on classical asymmetric cryptography (RSA, 
                                       │
                                       ▼
              ┌─────────────────────────────────────────────────┐
-             │       FIPS 203 ML-KEM-768 + AES-256-GCM        │
+             │       FIPS 203 ML-KEM + FIPS 206 Falcon-512     │
              │           Post-Quantum Secure Tunnel            │
              └─────────────────────────────────────────────────┘
 ```
 
 ---
 
+## 🔐 Cryptographic Stack & Specifications
+
+<div align="center">
+
+| Layer | Primitive / Standard | Security Parameters | Cryptographic Purpose |
+|---|---|---|---|
+| **Key Encapsulation** | **ML-KEM-768** | NIST FIPS 203 / Category 3 (~128-bit quantum security) | Quantum-safe session secret establishment |
+| **Digital Signatures** | **Falcon-512** | NIST FIPS 206 / Category 1 lattice signatures | Handshake transcript authentication |
+| **Payload Cipher** | **AES-256-GCM** | 256-bit Key, 96-bit IV, 128-bit Tag | AEAD message encryption & integrity |
+| **Anti-Replay** | **Sequence Tracker** | 64-bit strictly monotonic counter | Replay attack & reordering defense |
+| **Fingerprint** | **SHA-256 Digest** | Hex-formatted colon-delimited string | Out-of-band visual key verification |
+
+</div>
+
+<details>
+<summary><b>🔬 Click to expand Mathematical Security Rationale & Key Sizes</b></summary>
+<br />
+
+### 1. Module Learning with Errors (MLWE) — ML-KEM-768
+ML-KEM-768 bases its security on the hardness of the Module Learning with Errors problem over polynomial rings:
+$$R_q = \mathbb{Z}_q[X]/(X^{256} + 1)$$
+With matrix dimensions $k=3$ and modulus $q=3329$, ML-KEM-768 provides **NIST Security Category 3** protection ($>2^{128}$ quantum operations to break).
+* **Public Key:** `1,184 bytes`
+* **Ciphertext:** `1,088 bytes`
+* **Shared Secret:** Exactly `32 bytes` (256 bits)
+
+### 2. Fast Fourier Lattice Signatures — Falcon-512
+Falcon-512 is based on the Short Integer Solution (SIS) problem over NTRU lattices using Fast Fourier orthogonalization and trapdoor Gaussian sampling.
+* **Public Key:** `897 bytes` (FIPS 206 compliant)
+* **Secret Key:** `1,281 bytes`
+* **Signature Size:** `~660 bytes` (attached format)
+
+### 3. Direct 32-Byte Key Mapping (Zero-HKDF)
+ML-KEM-768 decapsulation already outputs a cryptographically uniform 32-byte secret (derived via SHAKE-256 internally). This 32-byte secret is mapped **directly** to the AES-256-GCM key with zero intermediate HMAC expansions.
+
+### 4. Authenticated Encryption with Associated Data (AEAD)
+Every message payload is encrypted under AES-256-GCM with a 96-bit random IV and sequence-numbered AAD. The 128-bit authentication tag guarantees that byte-flipping, truncation, or tampering triggers immediate socket rejection.
+</details>
+
+---
+
+## 🎛️ The 4 Interactive Protocol Toggles
+
+Inside the **Identity & Settings** screen, four glowing switches allow full experimental control over the network traffic:
+
+```
+┌─────────────────────────┐    ┌─────────────────────────┐
+│   ML-KEM-768 (Blue)     │    │   Falcon-512 (Orange)   │
+│  ● ON  : NIST FIPS 203  │    │  ● ON  : NIST FIPS 206  │
+│  ○ OFF : Classical ECDH │    │  ○ OFF : Skip Auth      │
+└─────────────────────────┘    └─────────────────────────┘
+┌─────────────────────────┐    ┌─────────────────────────┐
+│   AES-256-GCM (Red)     │    │ WIRESHARK MODE (Purple) │
+│  ● ON  : Ciphertext     │    │  ● ON  : ANALYSIS Frame │
+│  ○ OFF : Raw Plaintext  │    │  ○ OFF : Silent Frames  │
+└─────────────────────────┘    └─────────────────────────┘
+```
+
+| Toggle Combination | TCP Wire Difference Captured in Wireshark (Port `5050`) |
+|---|---|
+| **ALL ON (Default)** | Handshake exchanges `ML-KEM-768` (~1088B) + `Falcon-512` (~660B) auth signatures. Messages appear as base64 ciphertext in `CHAT_MESSAGE` frames. Plaintext is **100% invisible**. |
+| **AES OFF** | Messages are transmitted as unencrypted JSON: `{"type":"CHAT_MESSAGE_PLAIN","content":"<your readable message>"}`. Plaintext is **directly readable** in Wireshark. |
+| **ML-KEM OFF** | Replaces post-quantum `HANDSHAKE_KEM_RESP` (~1088B) with classical `ECDH_EXCHANGE` (~65B P-256 key exchange). |
+| **Falcon-512 OFF** | `HANDSHAKE_AUTH` frames are completely omitted from the TCP stream. |
+| **WIRESHARK MODE ON**| Encrypted message is immediately followed by a plaintext educational companion frame: `{"type":"ANALYSIS","data":"ML-KEM-768(Falcon-512(AES-256-GCM(iv:...:ct:...:tag:...)))"}` |
+
+---
+
+## 🔄 5-Step PQC Handshake Protocol
+
+Before any message can be transmitted, `Kπyρτόn_wave~` executes a **cryptographically bound 5-step quantum handshake**:
+
+```
+      INITIATOR (Node A)                                    RESPONDER (Node B)
+      ==================                                    ==================
+              │                                                      │
+              │  1. HANDSHAKE_HELLO (kemPubKey_A, sigPubKey_A, port) │
+              ├─────────────────────────────────────────────────────►│
+              │                                                      │
+              │  2. HANDSHAKE_HELLO (kemPubKey_B, sigPubKey_B, port) │
+              │◄─────────────────────────────────────────────────────┤
+              │                                                      │
+              │  [Node A encapsulates sharedSecret against Node B]   │
+              │  3. HANDSHAKE_KEM_RESP (ciphertext_AB)              │
+              ├─────────────────────────────────────────────────────►│
+              │                                                      │
+              │  [Node A signs transcript with Falcon-512 Secret Key]│
+              │  4a. HANDSHAKE_AUTH (falconSignature_A)              │
+              ├─────────────────────────────────────────────────────►│
+              │                                                      │
+              │                       [Node B decapsulates sharedSecret]
+              │                       [Node B signs transcript with Falcon-512 Secret Key]
+              │  4b. HANDSHAKE_AUTH (falconSignature_B)              │
+              │◄─────────────────────────────────────────────────────┤
+              │                                                      │
+              │  5a. HANDSHAKE_COMPLETE                              │
+              ├─────────────────────────────────────────────────────►│
+              │  5b. HANDSHAKE_COMPLETE                              │
+              │◄─────────────────────────────────────────────────────┤
+              │                                                      │
+        [Direct 32-Byte AES Key]                               [Direct 32-Byte AES Key]
+              │                                                      │
+              │◄─────────── AES-256-GCM Encrypted Chat ─────────────►│
+              │                                                      │
+              │── (Optional) ANALYSIS Frame (Wireshark Mode) ───────►│
+```
+
+---
+
+## 🔬 Real Wireshark Packet Capture Experiment
+
+You can observe your cryptographic configuration altering packets in real-time:
+
+### Step 1: Start Two Local Instances
+In Terminal 1 (Node A on Port 5050):
+```powershell
+cd "d:\Work\IOT\Quantu Secure\Web_App"
+npm run dev
+# Select Port 1 (5173)
+```
+
+In Terminal 2 (Node B on Port 5051):
+```powershell
+cd "d:\Work\IOT\Quantu Secure\Web_App"
+$env:ELECTRON_USER_DATA_DIR="$env:TEMP\krypton_peer2"
+npm run dev
+# Select Port 2 (5174)
+```
+
+### Step 2: Open Wireshark
+1. Launch the standalone **Wireshark** application.
+2. Select **Npcap Loopback Adapter** (for `127.0.0.1` traffic) or your local **Wi-Fi / Ethernet** interface.
+3. Apply filter:
+   ```wireshark
+   tcp.port == 5050 || tcp.port == 5051
+   ```
+
+### Step 3: Run the Experiment
+1. **Plaintext Test:** In Node A, toggle **AES-256-GCM** to `OFF`. Connect to `127.0.0.1:5051` and send `"Hello Plaintext"`. In Wireshark, right-click any packet &rarr; **Follow &rarr; TCP Stream** to see the unencrypted text.
+2. **Encrypted + Analysis Test:** Toggle **AES-256-GCM** to `ON` and **WIRESHARK MODE** to `ON`. Send `"Encrypted Experiment"`. Inspect the TCP Stream to observe the encrypted payload followed by the nested `ANALYSIS` companion frame.
+
+---
+
 ## 🔌 Hardware Schematic & Circuit Design
 
-QuantuSecure includes hardware gateway schematics for off-grid, long-range peer-to-peer transmission via the **ESP32-S3** microcontroller and the **EBYTE E220/E32 433T30D (SX1262 / SX1278)** 1-Watt 433MHz high-power LoRa module.
+`Kπyρτόn_wave~` includes hardware gateway schematics for off-grid, long-range peer-to-peer transmission via the **ESP32-S3** microcontroller and the **EBYTE E220/E32 433T30D (SX1262 / SX1278)** 1-Watt 433MHz high-power LoRa module.
 
 <div align="center">
   <br />
   <img src="./Circuit_Diagram/krypton_circuit.png" alt="Krypton Circuit Diagram" width="92%" style="border-radius: 12px; border: 1px solid #00C853; box-shadow: 0 8px 32px rgba(0, 200, 83, 0.2);" />
   <br />
-  <em><b>Figure 1:</b> Hardware wiring schematic for QuantuSecure (Krypton) ESP32-S3 and 433T30D LoRa Transceiver module.</em>
+  <em><b>Figure 1:</b> Hardware wiring schematic for Kπyρτόn_wave~ ESP32-S3 and 433T30D LoRa Transceiver module.</em>
   <br /><br />
 </div>
 
@@ -95,123 +263,12 @@ QuantuSecure includes hardware gateway schematics for off-grid, long-range peer-
 
 ---
 
-## 🔐 Cryptographic Stack & Specifications
-
-<div align="center">
-
-| Layer | Primitive / Standard | Security Parameters | Cryptographic Purpose |
-|---|---|---|---|
-| **Key Encapsulation** | **ML-KEM-768** *(Kyber-768)* | NIST FIPS 203 / Category 3 (~128-bit quantum security) | Quantum-safe session secret establishment |
-| **Digital Signatures** | **Ed25519** *(Falcon-512 Ready)* | Curve25519 / SHA-512 | Handshake transcript authentication |
-| **Key Derivation** | **HKDF-SHA256** | RFC 5869 (Extract & Expand) | Symmetric session key derivation |
-| **Payload Cipher** | **AES-256-GCM** | 256-bit Key, 96-bit IV, 128-bit Tag | AEAD message encryption & integrity |
-| **Anti-Replay** | **Sequence Tracker** | 64-bit strictly monotonic counter | Replay attack & reordering defense |
-| **Fingerprint** | **SHA-256 Digest** | Hex-formatted colon-delimited string | Out-of-band visual key verification |
-
-</div>
-
-<details>
-<summary><b>🔬 Click to expand Mathematical Security Rationale</b></summary>
-<br />
-
-### Module Learning with Errors (MLWE)
-ML-KEM-768 bases its security on the hardness of the Module Learning with Errors problem over polynomial rings:
-$$R_q = \mathbb{Z}_q[X]/(X^{256} + 1)$$
-With matrix dimensions $k=3$ and modulus $q=3329$, ML-KEM-768 provides **NIST Security Category 3** protection, requiring $>2^{140}$ classical operations and $>2^{128}$ quantum operations to break—well beyond the capabilities of any envisioned quantum computer.
-
-### Authenticated Encryption with Associated Data (AEAD)
-Every message payload is encrypted under AES-256 in Galois/Counter Mode (GCM). The 128-bit authentication tag guarantees that tampering, byte-flipping, or truncation by network adversaries causes decryption failure and immediate socket teardown.
-</details>
-
----
-
-## 🔄 5-Step PQC Handshake Protocol
-
-Before any message can be transmitted, QuantuSecure runs a **cryptographically bound 5-step quantum handshake**:
-
-```
-      INITIATOR (Node A)                                    RESPONDER (Node B)
-      ==================                                    ==================
-              │                                                      │
-              │  1. HANDSHAKE_HELLO (kemPubKey_A, sigPubKey_A, port) │
-              ├─────────────────────────────────────────────────────►│
-              │                                                      │
-              │  2. HANDSHAKE_HELLO (kemPubKey_B, sigPubKey_B, port) │
-              │◄─────────────────────────────────────────────────────┤
-              │                                                      │
-              │  [Node A encapsulates sharedSecret against Node B]   │
-              │  3. HANDSHAKE_KEM_RESP (ciphertext_AB)              │
-              ├─────────────────────────────────────────────────────►│
-              │                                                      │
-              │  [Node A signs transcript: (Hello_A || Hello_B || Ciphertext)]
-              │  4a. HANDSHAKE_AUTH (signature_A)                    │
-              ├─────────────────────────────────────────────────────►│
-              │                                                      │
-              │                       [Node B decapsulates sharedSecret]
-              │                       [Node B signs transcript: (Hello_B || Hello_A || Ciphertext)]
-              │  4b. HANDSHAKE_AUTH (signature_B)                    │
-              │◄─────────────────────────────────────────────────────┤
-              │                                                      │
-              │  5a. HANDSHAKE_COMPLETE                              │
-              ├─────────────────────────────────────────────────────►│
-              │  5b. HANDSHAKE_COMPLETE                              │
-              │◄─────────────────────────────────────────────────────┤
-              │                                                      │
-       [Derive AES Session Key]                               [Derive AES Session Key]
-              │                                                      │
-              │◄─────────── AES-256-GCM Encrypted Chat ─────────────►│
-```
-
----
-
-## 🚀 Key Features
-
-<table>
-  <tr>
-    <td width="50%">
-      <h3>🌐 Direct P2P Addressing</h3>
-      Connect to any peer instantly using <code>IP:Port</code> (e.g. <code>127.0.0.1:5051</code> on localhost or <code>192.168.1.14:5050</code> on LAN). Zero user registration, zero central phone directory.
-    </td>
-    <td width="50%">
-      <h3>🛡️ Unknown Sender Shield</h3>
-      Incoming connections from unlisted peers display an inline safety banner with 1-click <b>SAVE CONTACT</b> or <b>BLOCK PEER</b> controls.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>🖱️ Right-Click Context Menu</h3>
-      Full dark glassmorphic right-click menu and header <code>⋮</code> menu for:
-      <ul>
-        <li>✏️ Rename Contact / Save Peer</li>
-        <li>🔒 Inspect Public Keys & Fingerprints</li>
-        <li>🚫 Instant Block / Unblock</li>
-        <li>✕ Close / Delete Conversation</li>
-      </ul>
-    </td>
-    <td width="50%">
-      <h3>💾 Atomic Flat-JSON Storage</h3>
-      Zero SQL setup or daemon requirement. Uses crash-safe atomic write patterns (<code>.tmp</code> write &rarr; atomic filesystem rename) for <code>contacts.json</code>, <code>blocked.json</code>, and per-contact message histories.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <h3>🎨 Cyber-Defense UI & UX</h3>
-      Mac-style frameless window with interactive traffic lights (🔴 Close, 🟡 Minimize, 🟢 Maximize/Restore), GSAP micro-animations, and live typing indicators.
-    </td>
-    <td width="50%">
-      <h3>⚡ Auto Port Supervisor</h3>
-      Interactive CLI port scanner (ports 5173–5179) with automatic TCP collision detection and auto-increment fallback.
-    </td>
-  </tr>
-</table>
-
----
-
 ## 📁 Project Architecture & Structure
 
 ```
 Quantu Secure/
 │
+├── KRYPTON_WAVE_PQC_REPORT.md           # 📑 Detailed Engineering & PQC Report
 ├── Circuit_Diagram/                    # 🔌 Hardware Schematics & CAD
 │   ├── krypton_circuit.png             # Full circuit wiring diagram
 │   ├── krypton_circuit.fzz             # Fritzing editable CAD file
@@ -231,13 +288,13 @@ Quantu Secure/
 │   │
 │   └── src/
 │       ├── crypto/                     # 🔐 Cryptographic Subsystem
-│       │   ├── pqc.js                  # ML-KEM-768 & Ed25519 signing primitives
-│       │   ├── session.js              # AES-256-GCM, HKDF-SHA256, Sequence Tracker
-│       │   └── identity.js             # Node identity keypair generation & storage
+│       │   ├── pqc.js                  # ML-KEM-768 & Falcon-512 dynamic ESM bridge
+│       │   ├── session.js              # AES-256-GCM AEAD, zero-HKDF direct key & Wireshark Mode
+│       │   └── identity.js             # Falcon-512 identity persistence & auto-migration
 │       │
 │       ├── network/                    # 📡 TCP Networking Subsystem
-│       │   ├── protocol.js             # 4-byte length-prefix framing (FrameParser)
-│       │   ├── peer.js                 # PeerConnection state machine & handshake
+│       │   ├── protocol.js             # 4-byte framing (ECDH, PLAIN, ANALYSIS frames)
+│       │   ├── peer.js                 # Config-aware TCP state machine & socket safety
 │       │   └── server.js               # PeerManager singleton & TCP server
 │       │
 │       ├── storage/                    # 🗄️ JSON Persistence Layer
@@ -249,17 +306,18 @@ Quantu Secure/
 │           ├── App.jsx                 # App root & modal coordinator
 │           ├── store/useAppStore.js    # Zustand state store
 │           ├── components/             # React modular components
-│           │   ├── Sidebar.jsx         # Contact list & navigation
-│           │   ├── ConversationView.jsx# Active chat stream & safety banner
+│           │   ├── Sidebar.jsx         # Contact list & Kπyρτόn_wave~ wordmark
+│           │   ├── ConversationView.jsx# Active chat, dynamic badge & WS banner
+│           │   ├── IdentityScreen.jsx  # 4 security toggles & live packet telemetry
+│           │   ├── WiresharkWarningBanner.jsx # Glowing purple warning banner
 │           │   ├── ContextMenu.jsx     # Right-click dark glassmorphic popup
-│           │   ├── SecurityDetailsModal.jsx # Key inspector modal
+│           │   ├── SecurityDetailsModal.jsx # Key inspector & fingerprint modal
 │           │   ├── AddPeerModal.jsx    # Handshake initiator modal
 │           │   ├── RenameContactModal.jsx # Contact rename modal
 │           │   └── WindowControls.jsx  # macOS-style traffic lights
-│           └── styles/                 # CSS Design System
+│           └── styles/index.css        # CSS Design System & neon toggle glows
 │
-├── Mobile_App/                         # 📱 Mobile Client Package
-└── Paper/                              # 📄 Project Synopsis & Documentation
+└── Paper/                              # 📄 Project Synopsis & Academic Research (Preserved)
 ```
 
 ---
@@ -270,14 +328,12 @@ Quantu Secure/
 - **Node.js**: v18.0.0 or higher ([Download Node.js](https://nodejs.org/))
 - **npm**: v9.0.0 or higher
 - **Git**
+- **Wireshark** (optional, for live packet inspection)
 
 ### Clone & Install
 ```bash
-# Clone the repository
 git clone https://github.com/<your-username>/QuantuSecure.git
 cd "QuantuSecure/Web_App"
-
-# Install dependencies
 npm install
 ```
 
@@ -285,47 +341,23 @@ npm install
 
 ## 💻 Running the Application
 
-### 🟢 Single Instance Mode
 ```powershell
+cd "d:\Work\IOT\Quantu Secure\Web_App"
 npm run dev
 ```
+
 1. The CLI scans available ports and displays an interactive menu:
 ```
-  QuantuSecure    PQC-Secured LAN Chat
-  ──────────────────────────────────────
-  ML-KEM-768 · AES-256-GCM · HKDF-SHA256
+  Kπyρτόn_wave~    Post-Quantum Cryptographic Networking Experiment
+  ──────────────────────────────────────────────────────────────────
+  ML-KEM-768 · Falcon-512 · AES-256-GCM · Wireshark Analysis Mode
 
   Select renderer port:
    [1] 5173  ← default
    [2] 5174
    ...
 ```
-2. Press **Enter** to accept the default port. The Vite dev server and Electron app launch automatically.
-
----
-
-### 👥 Dual Instance Simulation (P2P Localhost Handshake)
-
-To test post-quantum encrypted chatting between two local nodes on the same PC:
-
-#### **Terminal 1 (Instance A — Port 5050 / Renderer 5173):**
-```powershell
-cd "d:\Work\IOT\Quantu Secure\Web_App"
-npm run dev
-# Choose Port 1 (5173)
-```
-
-#### **Terminal 2 (Instance B — Port 5051 / Renderer 5174):**
-```powershell
-cd "d:\Work\IOT\Quantu Secure\Web_App"
-$env:NODE_ENV='development'; npx electron . --user-data-dir="C:\tmp\quantu-b"
-```
-
-#### **Connecting the Peers:**
-1. In **Instance A**, click the green **`+`** button (bottom left).
-2. Enter **`127.0.0.1:5051`** (Instance B's listening port).
-3. Click **`INITIATE HANDSHAKE`** &rarr; **`SAVE CONTACT`**.
-4. Both nodes will display an active online connection with full quantum encryption.
+2. Press **Enter** to accept the default port. Vite and Electron will launch automatically.
 
 ---
 
@@ -335,23 +367,15 @@ $env:NODE_ENV='development'; npx electron . --user-data-dir="C:\tmp\quantu-b"
 cd "d:\Work\IOT\Quantu Secure\Web_App"
 npm run build
 ```
-Packaged binaries (`.exe` on Windows, `.dmg` on macOS, `.AppImage` on Linux) will be generated in `Web_App/release/`.
+Packaged binaries will be output to `Web_App/release/`.
 
 ---
 
 <div align="center">
 
-### 🛠️ Technology Stack
-
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=js,nodejs,react,electron,vite,cpp,arduino,git,vscode" alt="Tech Stack" />
-</p>
-
-<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" alt="line" width="100%" />
-
 ### 🛡️ Compliance & Standards
-*Cryptographic primitives strictly conform to **NIST FIPS 203 (ML-KEM)** and **RFC 5869 / RFC 5116 (AEAD)** standards.*
+*Cryptographic primitives strictly conform to **NIST FIPS 203 (ML-KEM-768)**, **NIST FIPS 206 (Falcon-512)**, and **NIST SP 800-38D (AES-256-GCM)**.*
 
-**QuantuSecure (Krypton)** • *Engineered for the Post-Quantum Era.*
+**Kπyρτόn_wave~** • *Post-Quantum Cryptographic Networking Laboratory.*
 
 </div>

@@ -33,9 +33,9 @@ export default function Sidebar() {
       <div className="sidebar-header" onDoubleClick={handleHeaderDoubleClick}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <WindowControls />
-          <div className="wordmark">
+          <div className="wordmark font-mono" style={{ fontSize: 13, letterSpacing: '0.04em' }}>
             <ShieldIcon className="wordmark-icon" />
-            QuantuSecure
+            Kπyρτόn_wave~
           </div>
         </div>
         <div className="sidebar-actions" style={{ WebkitAppRegion: 'no-drag' }}>

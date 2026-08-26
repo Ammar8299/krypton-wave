@@ -1,8 +1,7 @@
 'use strict';
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose a safe, typed API to the renderer process
-contextBridge.exposeInMainWorld('quantuSecure', {
+const api = {
   // ── Identity ─────────────────────────────────────────────────────────────
   getIdentity: () => ipcRenderer.invoke('get-identity'),
   setIdentityName: (name) => ipcRenderer.invoke('set-identity-name', name),
@@ -13,6 +12,10 @@ contextBridge.exposeInMainWorld('quantuSecure', {
   windowMaximize:    () => ipcRenderer.invoke('window-maximize'),
   windowClose:       () => ipcRenderer.invoke('window-close'),
   windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+
+  // ── Security Configuration (Kπyρτόn_wave~) ────────────────────────────────
+  getSecurityConfig: () => ipcRenderer.invoke('get-security-config'),
+  setSecurityConfig: (config) => ipcRenderer.invoke('set-security-config', config),
 
   // ── Contacts ─────────────────────────────────────────────────────────────
   getContacts: () => ipcRenderer.invoke('get-contacts'),
@@ -44,7 +47,15 @@ contextBridge.exposeInMainWorld('quantuSecure', {
     ipcRenderer.on('peer-event', (_, data) => cb(data));
     return () => ipcRenderer.removeAllListeners('peer-event');
   },
+  onCryptoEvent: (cb) => {
+    ipcRenderer.on('crypto-event', (_, data) => cb(data));
+    return () => ipcRenderer.removeAllListeners('crypto-event');
+  },
 
   // ── Shell ─────────────────────────────────────────────────────────────────
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
-});
+};
+
+contextBridge.exposeInMainWorld('kryptonWave', api);
+contextBridge.exposeInMainWorld('quantuSecure', api);
+

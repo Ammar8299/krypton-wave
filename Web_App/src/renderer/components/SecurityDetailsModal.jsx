@@ -58,7 +58,7 @@ export default function SecurityDetailsModal() {
         {/* Status Banner */}
         <div className="status-row success" style={{ marginBottom: 16 }}>
           <LockIcon size={13} />
-          <span>CHANNEL VERIFIED · ML-KEM-768 · AES-256-GCM</span>
+          <span>CHANNEL VERIFIED · ML-KEM-768 · FALCON-512 · AES-256-GCM</span>
         </div>
 
         {/* Peer Info */}
@@ -74,7 +74,7 @@ export default function SecurityDetailsModal() {
 
         {/* Fingerprint */}
         <div className="info-card" style={{ padding: 14, marginBottom: 12 }}>
-          <div className="peer-info-label">SIGNING KEY FINGERPRINT (SHA-256)</div>
+          <div className="peer-info-label">FALCON-512 SIGNING KEY FINGERPRINT (SHA-256)</div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 4 }}>
             <div className="fingerprint-text" style={{ flex: 1, fontSize: 11 }}>
               {fingerprint}
@@ -97,7 +97,7 @@ export default function SecurityDetailsModal() {
           <div className="info-card-title" style={{ marginBottom: 10, paddingBottom: 6 }}>KEY MATERIAL</div>
 
           <div style={{ marginBottom: 10 }}>
-            <div className="peer-info-label">ML-KEM-768 PUBLIC KEY</div>
+            <div className="peer-info-label">ML-KEM-768 PUBLIC KEY (FIPS 203)</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
               <div className="peer-info-value font-mono" style={{ flex: 1, fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {kemPub}
@@ -111,7 +111,7 @@ export default function SecurityDetailsModal() {
           </div>
 
           <div>
-            <div className="peer-info-label">SIGNING PUBLIC KEY (ED25519 / FALCON-512)</div>
+            <div className="peer-info-label">FALCON-512 SIGNING PUBLIC KEY (FIPS 206)</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
               <div className="peer-info-value font-mono" style={{ flex: 1, fontSize: 10, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {sigPub}

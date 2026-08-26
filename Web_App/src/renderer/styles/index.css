@@ -35,6 +35,16 @@
   --red-dim:         #7f1916;
   --red-glow:        rgba(229, 57, 53, 0.20);
 
+  /* Cryptographic Layer Colors (Kπyρτόn_wave~) */
+  --color-kem:            #00BFFF;
+  --color-kem-glow:       rgba(0, 191, 255, 0.25);
+  --color-sig:            #FF8C00;
+  --color-sig-glow:       rgba(255, 140, 0, 0.25);
+  --color-aes:            #FF3131;
+  --color-aes-glow:       rgba(255, 49, 49, 0.25);
+  --color-wireshark:      #A855F7;
+  --color-wireshark-glow: rgba(168, 85, 247, 0.25);
+
   /* Text */
   --text-primary:    #f0f0f0;
   --text-secondary:  #8a8a8a;
@@ -1038,3 +1048,236 @@ html, body, #root {
   color: #fff;
   box-shadow: 0 0 16px rgba(255, 23, 68, 0.4);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Kπyρτόn_wave~ — Experimental Cryptographic Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Wireshark Card & Banner ─────────────────────────────────── */
+.wireshark-card {
+  border-color: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04) 0%, var(--surface-1) 100%);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.08);
+}
+
+.wireshark-warning-pill {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: var(--radius-sm);
+  color: #c084fc;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  animation: pulseWireshark 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseWireshark {
+  0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.2); }
+  50%      { box-shadow: 0 0 24px rgba(168, 85, 247, 0.45); }
+}
+
+.wireshark-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(168, 85, 247, 0.12);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.4);
+  animation: fadeIn 0.2s ease-out;
+  flex-shrink: 0;
+}
+.wireshark-banner-icon { font-size: 18px; }
+.wireshark-banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d8b4fe;
+  letter-spacing: 0.04em;
+}
+.wireshark-banner-desc {
+  font-size: 10.5px;
+  color: #c084fc;
+  margin-top: 1px;
+}
+
+/* ── Interactive Cryptographic Toggles ──────────────────────── */
+.crypto-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.crypto-toggle-row:last-of-type { border-bottom: none; }
+.crypto-toggle-row.info-only { opacity: 0.85; }
+
+.crypto-toggle-info { flex: 1; }
+.crypto-toggle-name {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+.crypto-toggle-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-md);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: all 0.2s var(--ease-snappy);
+  flex-shrink: 0;
+}
+.toggle-btn .toggle-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+/* Toggle Active Variants */
+.toggle-btn.active-kem {
+  border-color: var(--color-kem);
+  background: rgba(0, 191, 255, 0.15);
+  color: var(--color-kem);
+  box-shadow: 0 0 16px var(--color-kem-glow);
+}
+.toggle-btn.active-kem .toggle-indicator {
+  background: var(--color-kem);
+  box-shadow: 0 0 8px var(--color-kem);
+}
+
+.toggle-btn.active-sig {
+  border-color: var(--color-sig);
+  background: rgba(255, 140, 0, 0.15);
+  color: var(--color-sig);
+  box-shadow: 0 0 16px var(--color-sig-glow);
+}
+.toggle-btn.active-sig .toggle-indicator {
+  background: var(--color-sig);
+  box-shadow: 0 0 8px var(--color-sig);
+}
+
+.toggle-btn.active-aes {
+  border-color: var(--color-aes);
+  background: rgba(255, 49, 49, 0.15);
+  color: var(--color-aes);
+  box-shadow: 0 0 16px var(--color-aes-glow);
+}
+.toggle-btn.active-aes .toggle-indicator {
+  background: var(--color-aes);
+  box-shadow: 0 0 8px var(--color-aes);
+}
+
+.toggle-btn.active-wireshark {
+  border-color: var(--color-wireshark);
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  box-shadow: 0 0 16px var(--color-wireshark-glow);
+}
+.toggle-btn.active-wireshark .toggle-indicator {
+  background: var(--color-wireshark);
+  box-shadow: 0 0 8px var(--color-wireshark);
+}
+
+/* ── Live Security Status Bar ───────────────────────────────── */
+.status-summary-bar {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.status-badge--secure {
+  background: rgba(0, 200, 83, 0.08);
+  border: 1px solid var(--border-green);
+  color: var(--green-bright);
+  box-shadow: 0 0 20px rgba(0, 200, 83, 0.12);
+}
+.status-badge--warn {
+  background: rgba(255, 171, 0, 0.08);
+  border: 1px solid rgba(255, 171, 0, 0.35);
+  color: #ffab00;
+  box-shadow: 0 0 20px rgba(255, 171, 0, 0.12);
+}
+.status-badge--danger {
+  background: rgba(229, 57, 53, 0.1);
+  border: 1px solid var(--border-red);
+  color: var(--red-alert);
+  box-shadow: 0 0 20px var(--red-glow);
+}
+
+.reconnect-alert {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 140, 0, 0.12);
+  border: 1px solid rgba(255, 140, 0, 0.4);
+  color: #ffb74d;
+  font-size: 11px;
+  text-align: center;
+  animation: reconnectBlink 1.8s infinite ease-in-out;
+}
+
+@keyframes reconnectBlink {
+  0%, 100% { opacity: 0.85; border-color: rgba(255, 140, 0, 0.4); }
+  50%      { opacity: 1;    border-color: #ff8c00; box-shadow: 0 0 15px rgba(255, 140, 0, 0.3); }
+}
+
+/* ── Live Telemetry Table ───────────────────────────────────── */
+.telemetry-table {
+  background: #000;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.telemetry-header {
+  display: grid;
+  grid-template-columns: 80px 65px 120px 85px 1fr;
+  padding: 8px 12px;
+  background: #0d0d0d;
+  border-bottom: 1px solid var(--border);
+  font-size: 9.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+.telemetry-row {
+  display: grid;
+  grid-template-columns: 80px 65px 120px 85px 1fr;
+  padding: 8px 12px;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  align-items: center;
+}
+.telemetry-row:last-child { border-bottom: none; }
+.telemetry-sent { color: var(--green-primary); font-weight: 600; }
+.telemetry-recv { color: var(--color-kem); font-weight: 600; }
+
+/* ── Insecure Header Badge Variant ──────────────────────────── */
+.enc-badge--insecure {
+  border-color: var(--border-red) !important;
+  color: var(--red-alert) !important;
+  background: rgba(229, 57, 53, 0.12) !important;
+}
+

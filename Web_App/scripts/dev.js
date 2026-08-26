@@ -66,9 +66,9 @@ async function waitForVite(port, timeoutMs = 30_000) {
 // ── Banner ─────────────────────────────────────────────────────────────────────
 function printBanner() {
   console.log('');
-  console.log(`  ${bg('  QuantuSecure  ')}  ${gr('PQC-Secured LAN Chat')}`);
-  console.log(`  ${gr('──────────────────────────────────────')}`);
-  console.log(`  ${gr('ML-KEM-768 · AES-256-GCM · HKDF-SHA256')}`);
+  console.log(`  ${bg('  Kπyρτόn_wave~  ')}  ${gr('Post-Quantum Cryptographic Networking Experiment')}`);
+  console.log(`  ${gr('──────────────────────────────────────────────────────────────────')}`);
+  console.log(`  ${gr('ML-KEM-768 · Falcon-512 · AES-256-GCM · Wireshark Analysis Mode')}`);
   console.log('');
 }
 

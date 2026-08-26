@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const getApi = () => window.quantuSecure;
+const getApi = () => window.kryptonWave || window.quantuSecure;
 
 export default function WindowControls({ className = '' }) {
   const [isMaximized, setIsMaximized] = useState(false);

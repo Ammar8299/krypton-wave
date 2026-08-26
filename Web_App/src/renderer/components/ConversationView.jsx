@@ -1,24 +1,37 @@
-import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useLayoutEffect } from 'react';
 import { gsap } from 'gsap';
 import { useAppStore } from '../store/useAppStore';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
 import InputBar from './InputBar';
+import WiresharkWarningBanner from './WiresharkWarningBanner';
 import { LockIcon, MessageCircleIcon } from './Icons';
 
-const api = window.quantuSecure;
+const getApi = () => window.quantuSecure;
 
 function getContactDisplayName(store, contactId) {
   const saved = store.contacts.find(c => `${c.ip}:${c.port}` === contactId);
-  if (saved) return { name: saved.name, initial: saved.name[0].toUpperCase() };
+  if (saved) return { name: saved.name, initial: saved.name[0].toUpperCase(), contact: saved, isEphemeral: false };
   const ep = store.ephemeralPeers.find(p => p.id === contactId);
-  if (ep) return { name: ep.name || 'Unknown', initial: (ep.name || '?')[0].toUpperCase() };
-  return { name: contactId, initial: '?' };
+  if (ep) return { name: ep.name || 'Unknown', initial: (ep.name || '?')[0].toUpperCase(), contact: null, isEphemeral: true };
+  return { name: contactId, initial: '?', contact: null, isEphemeral: false };
+}
+
+function getEncBadgeText(config) {
+  const { kemEnabled, sigEnabled, aesEnabled, wiresharkMode } = config || {};
+  const parts = [];
+  if (kemEnabled) parts.push('ML-KEM');
+  if (sigEnabled) parts.push('Falcon-512');
+  if (aesEnabled) parts.push('AES-256');
+  if (!aesEnabled) parts.push('⚠ PLAIN');
+  if (parts.length === 0) parts.push('⚠ UNENCRYPTED');
+  if (wiresharkMode) parts.push('🧪 WS');
+  return parts.join(' · ');
 }
 
 export default function ConversationView() {
   const store = useAppStore();
-  const { activeContactId, messages, peerStatus } = store;
+  const { activeContactId, messages, peerStatus, securityConfig } = store;
   const listRef = useRef(null);
   const prevMsgCount = useRef(0);
 
@@ -47,6 +60,8 @@ export default function ConversationView() {
 
   const { name, initial, contact, isEphemeral } = getContactDisplayName(store, activeContactId);
   const isBlocked = store.blockedPeers?.includes(activeContactId);
+  const badgeText = getEncBadgeText(securityConfig);
+  const isPlaintext = !securityConfig?.aesEnabled;
 
   const handleHeaderMenu = (e) => {
     e.stopPropagation();
@@ -108,9 +123,14 @@ export default function ConversationView() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, WebkitAppRegion: 'no-drag' }}>
-          <div className="enc-badge" onClick={handleSecurityClick} style={{ cursor: 'pointer' }}>
+          <div
+            className={`enc-badge ${isPlaintext ? 'enc-badge--insecure' : ''}`}
+            onClick={handleSecurityClick}
+            style={{ cursor: 'pointer' }}
+            title="Active cryptographic suite (Click for details)"
+          >
             <LockIcon size={10} />
-            ML-KEM-768 · AES-256-GCM
+            <span className="font-mono">{badgeText}</span>
           </div>
 
           <button
@@ -124,6 +144,9 @@ export default function ConversationView() {
           </button>
         </div>
       </div>
+
+      {/* Wireshark Warning Banner if active */}
+      <WiresharkWarningBanner />
 
       {/* Unsaved / Unknown Sender Banner */}
       {isEphemeral && !isBlocked && (
@@ -171,8 +194,17 @@ export default function ConversationView() {
         {msgs.length === 0 && (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="font-mono" style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
-              SECURE CHANNEL ESTABLISHED<br />
-              <span style={{ color: 'var(--green-dim)' }}>Messages are end-to-end encrypted</span>
+              {isPlaintext ? (
+                <>
+                  <span style={{ color: 'var(--red-alert)' }}>⚠️ PLAINTEXT MODE ACTIVE</span><br />
+                  <span style={{ color: 'var(--text-muted)' }}>Messages are not encrypted</span>
+                </>
+              ) : (
+                <>
+                  PQC SESSION READY<br />
+                  <span style={{ color: 'var(--green-dim)' }}>ML-KEM-768 · Falcon-512 · AES-256-GCM</span>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -204,10 +236,12 @@ function EmptyState() {
       />
       <div className="empty-state">
         <MessageCircleIcon size={64} />
-        <div className="empty-state-title">QuantuSecure</div>
+        <div className="empty-state-title font-mono" style={{ color: 'var(--green-bright)' }}>
+          Kπyρτόn_wave~
+        </div>
         <div className="empty-state-sub font-mono" style={{ fontSize: 11 }}>
           SELECT A CONTACT OR ADD A NEW PEER<br />
-          <span style={{ color: 'var(--green-dim)' }}>All messages protected with ML-KEM-768</span>
+          <span style={{ color: 'var(--green-dim)' }}>Post-Quantum Cryptographic Protocol Suite</span>
         </div>
       </div>
     </div>
